@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" name="pdpDataProjections.AppTest" time="0.024" tests="1" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="gopherProxySet" value="false"/>
+    <property name="awt.toolkit" value="sun.lwawt.macosx.LWCToolkit"/>
+    <property name="java.specification.version" value="11"/>
+    <property name="sun.cpu.isalist" value=""/>
+    <property name="sun.jnu.encoding" value="UTF-8"/>
+    <property name="java.class.path" value="/Users/emilymorgan/Desktop/pdpDataProjections/target/test-classes:/Users/emilymorgan/Desktop/pdpDataProjections/target/classes:/Users/emilymorgan/.m2/repository/junit/junit/4.11/junit-4.11.jar:/Users/emilymorgan/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-core/1.15.0/flink-core-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-annotations/1.15.0/flink-annotations-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-metrics-core/1.15.0/flink-metrics-core-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-asm-9/9.2-15.0/flink-shaded-asm-9-9.2-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/commons/commons-lang3/3.3.2/commons-lang3-3.3.2.jar:/Users/emilymorgan/.m2/repository/com/esotericsoftware/kryo/kryo/2.24.0/kryo-2.24.0.jar:/Users/emilymorgan/.m2/repository/com/esotericsoftware/minlog/minlog/1.2/minlog-1.2.jar:/Users/emilymorgan/.m2/repository/org/objenesis/objenesis/2.1/objenesis-2.1.jar:/Users/emilymorgan/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/Users/emilymorgan/.m2/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-guava/30.1.1-jre-15.0/flink-shaded-guava-30.1.1-jre-15.0.jar:/Users/emilymorgan/.m2/repository/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-force-shading/15.0/flink-shaded-force-shading-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-streaming-java/1.15.0/flink-streaming-java-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-file-sink-common/1.15.0/flink-file-sink-common-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-runtime/1.15.0/flink-runtime-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-rpc-core/1.15.0/flink-rpc-core-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-rpc-akka-loader/1.15.0/flink-rpc-akka-loader-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-queryable-state-client-java/1.15.0/flink-queryable-state-client-java-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-hadoop-fs/1.15.0/flink-hadoop-fs-1.15.0.jar:/Users/emilymorgan/.m2/repository/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-netty/4.1.70.Final-15.0/flink-shaded-netty-4.1.70.Final-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-jackson/2.12.4-15.0/flink-shaded-jackson-2.12.4-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-zookeeper-3/3.5.9-15.0/flink-shaded-zookeeper-3-3.5.9-15.0.jar:/Users/emilymorgan/.m2/repository/org/javassist/javassist/3.24.0-GA/javassist-3.24.0-GA.jar:/Users/emilymorgan/.m2/repository/org/xerial/snappy/snappy-java/1.1.8.3/snappy-java-1.1.8.3.jar:/Users/emilymorgan/.m2/repository/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-java/1.15.0/flink-java-1.15.0.jar:/Users/emilymorgan/.m2/repository/com/twitter/chill-java/0.7.6/chill-java-0.7.6.jar:/Users/emilymorgan/.m2/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/Users/emilymorgan/.m2/repository/org/slf4j/slf4j-api/2.0.0-alpha7/slf4j-api-2.0.0-alpha7.jar:/Users/emilymorgan/.m2/repository/org/slf4j/slf4j-simple/2.0.0-alpha7/slf4j-simple-2.0.0-alpha7.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-clients/1.15.0/flink-clients-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-optimizer/1.15.0/flink-optimizer-1.15.0.jar:/Users/emilymorgan/.m2/repository/commons-cli/commons-cli/1.5.0/commons-cli-1.5.0.jar:"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="java.vendor.url" value="https://openjdk.java.net/"/>
+    <property name="user.timezone" value=""/>
+    <property name="java.vm.specification.version" value="11"/>
+    <property name="os.name" value="Mac OS X"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="DE"/>
+    <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/jdk-11.0.15.jdk/Contents/Home/lib"/>
+    <property name="sun.java.command" value="/Users/emilymorgan/Desktop/pdpDataProjections/target/surefire/surefirebooter13872783775122753878.jar /Users/emilymorgan/Desktop/pdpDataProjections/target/surefire 2022-05-22T13-33-14_461-jvmRun1 surefire14200058902569714129tmp surefire_015246318715979087767tmp"/>
+    <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="surefire.test.class.path" value="/Users/emilymorgan/Desktop/pdpDataProjections/target/test-classes:/Users/emilymorgan/Desktop/pdpDataProjections/target/classes:/Users/emilymorgan/.m2/repository/junit/junit/4.11/junit-4.11.jar:/Users/emilymorgan/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-core/1.15.0/flink-core-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-annotations/1.15.0/flink-annotations-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-metrics-core/1.15.0/flink-metrics-core-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-asm-9/9.2-15.0/flink-shaded-asm-9-9.2-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/commons/commons-lang3/3.3.2/commons-lang3-3.3.2.jar:/Users/emilymorgan/.m2/repository/com/esotericsoftware/kryo/kryo/2.24.0/kryo-2.24.0.jar:/Users/emilymorgan/.m2/repository/com/esotericsoftware/minlog/minlog/1.2/minlog-1.2.jar:/Users/emilymorgan/.m2/repository/org/objenesis/objenesis/2.1/objenesis-2.1.jar:/Users/emilymorgan/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/Users/emilymorgan/.m2/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-guava/30.1.1-jre-15.0/flink-shaded-guava-30.1.1-jre-15.0.jar:/Users/emilymorgan/.m2/repository/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-force-shading/15.0/flink-shaded-force-shading-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-streaming-java/1.15.0/flink-streaming-java-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-file-sink-common/1.15.0/flink-file-sink-common-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-runtime/1.15.0/flink-runtime-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-rpc-core/1.15.0/flink-rpc-core-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-rpc-akka-loader/1.15.0/flink-rpc-akka-loader-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-queryable-state-client-java/1.15.0/flink-queryable-state-client-java-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-hadoop-fs/1.15.0/flink-hadoop-fs-1.15.0.jar:/Users/emilymorgan/.m2/repository/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-netty/4.1.70.Final-15.0/flink-shaded-netty-4.1.70.Final-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-jackson/2.12.4-15.0/flink-shaded-jackson-2.12.4-15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-shaded-zookeeper-3/3.5.9-15.0/flink-shaded-zookeeper-3-3.5.9-15.0.jar:/Users/emilymorgan/.m2/repository/org/javassist/javassist/3.24.0-GA/javassist-3.24.0-GA.jar:/Users/emilymorgan/.m2/repository/org/xerial/snappy/snappy-java/1.1.8.3/snappy-java-1.1.8.3.jar:/Users/emilymorgan/.m2/repository/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-java/1.15.0/flink-java-1.15.0.jar:/Users/emilymorgan/.m2/repository/com/twitter/chill-java/0.7.6/chill-java-0.7.6.jar:/Users/emilymorgan/.m2/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar:/Users/emilymorgan/.m2/repository/org/slf4j/slf4j-api/2.0.0-alpha7/slf4j-api-2.0.0-alpha7.jar:/Users/emilymorgan/.m2/repository/org/slf4j/slf4j-simple/2.0.0-alpha7/slf4j-simple-2.0.0-alpha7.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-clients/1.15.0/flink-clients-1.15.0.jar:/Users/emilymorgan/.m2/repository/org/apache/flink/flink-optimizer/1.15.0/flink-optimizer-1.15.0.jar:/Users/emilymorgan/.m2/repository/commons-cli/commons-cli/1.5.0/commons-cli-1.5.0.jar:"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="/Users/emilymorgan"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2022-04-19"/>
+    <property name="java.home" value="/Library/Java/JavaVirtualMachines/jdk-11.0.15.jdk/Contents/Home"/>
+    <property name="file.separator" value="/"/>
+    <property name="basedir" value="/Users/emilymorgan/Desktop/pdpDataProjections"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.awt.graphicsenv" value="sun.awt.CGraphicsEnvironment"/>
+    <property name="surefire.real.class.path" value="/Users/emilymorgan/Desktop/pdpDataProjections/target/surefire/surefirebooter13872783775122753878.jar"/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+    <property name="java.runtime.version" value="11.0.15+8-LTS-149"/>
+    <property name="user.name" value="emilymorgan"/>
+    <property name="path.separator" value=":"/>
+    <property name="os.version" value="10.15.7"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="18.9"/>
+    <property name="localRepository" value="/Users/emilymorgan/.m2/repository"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="/var/folders/vl/lr03pmds12g0r1fcsp89w9p00000gn/T/"/>
+    <property name="java.version" value="11.0.15"/>
+    <property name="user.dir" value="/Users/emilymorgan/Desktop/pdpDataProjections"/>
+    <property name="os.arch" value="x86_64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="java.awt.printerjob" value="sun.lwawt.macosx.CPrinterJob"/>
+    <property name="sun.os.patch.level" value="unknown"/>
+    <property name="java.library.path" value="/Users/emilymorgan/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.info" value="mixed mode"/>
+    <property name="java.vm.version" value="11.0.15+8-LTS-149"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeBig"/>
+    <property name="java.class.version" value="55.0"/>
+    <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
+  </properties>
+  <testcase name="shouldAnswerWithTrue" classname="pdpDataProjections.AppTest" time="0.001"/>
+</testsuite>
