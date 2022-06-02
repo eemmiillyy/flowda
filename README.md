@@ -2,12 +2,29 @@
 
 `mvn install`
 
-`java [FILENAME]`
+`java [FILENAME]` (Only works with no dependencies. If dependencies then use the IDE play button)
 
 ## Build
 
 `mvn package` generates in target/[FILENAME].jar
 `java -cp target/pdpDataProjections-1.0-SNAPSHOT.jar pdpDataProjections.App`
+
+## Test
+
+`mvn test`
+
+Run a single test
+`mvn -Dtest=AppTest test`
+
+Run a single test method
+`mvn -Dtest=AppTest#methodname test`
+
+## New flow
+
+`docker-compose up -d`
+test kafka is up, Test the connectors are empty
+configure connector, configure topic (db or tables to listen to)
+test with remote database
 
 ## General
 
@@ -62,7 +79,7 @@ Installed at /Applications/flink-1.15.0
 localhost:8081 to access the Flink UI Dashboard.
 
 FLINK JOB
-./bin/flink run pdpDataProjectionss/streaming/WordCount.jar
+./bin/flink run pdpDataProjections/streaming/WordCount.jar
 
 STOP FLINK
 ./bin/stop-cluster.sh
