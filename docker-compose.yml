@@ -1,7 +1,7 @@
 version: "2"
 services:
   zookeeper:
-    image: quay.io/debezium/zookeeper:latest
+    image: quay.io/debezium/zookeeper:1.9
     ports:
       - 2181:2181
       - 3888:3888
@@ -17,6 +17,7 @@ services:
       KAFKA_BROKER_ID: 1
       ZOOKEEPER_CONNECT: zookeeper:2181
   mysql:
+    # mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory
     image: quay.io/debezium/example-mysql:latest
     ports:
       - 3306:3306
@@ -32,6 +33,7 @@ services:
     links:
       - kafka
       - mysql
+      - zookeeper
     environment:
       - BOOTSTRAP_SERVERS=kafka:9092
       - GROUP_ID=1

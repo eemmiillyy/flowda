@@ -2,16 +2,13 @@
 
 `mvn install`
 
+`docker-compose up -d` to start the services
+
 `java [FILENAME]` (Only works with no dependencies. If dependencies then use the IDE play button)
-
-## Build
-
-`mvn package` generates in target/[FILENAME].jar
-`java -cp target/pdpDataProjections-1.0-SNAPSHOT.jar pdpDataProjections.App`
 
 ## Test
 
-`mvn test`
+`mvn test` to check the services are healthy
 
 Run a single test
 `mvn -Dtest=AppTest test`
@@ -19,10 +16,14 @@ Run a single test
 Run a single test method
 `mvn -Dtest=AppTest#methodname test`
 
+## Build
+
+`mvn package` generates in target/[FILENAME].jar
+`java -cp target/pdpDataProjections-1.0-SNAPSHOT.jar pdpDataProjections.App`
+
 ## New flow
 
 `docker-compose up -d`
-test kafka is up, Test the connectors are empty
 configure connector, configure topic (db or tables to listen to)
 test with remote database
 
@@ -37,7 +38,7 @@ KAFKA
 docker run -it --rm --name kafka -p 9092:9092 --link zookeeper:zookeeper quay.io/debezium/kafka:1.9
 
 MYSQL DB
-docker run -it --rm --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=debezium -e MYSQL_USER=mysqluser -e MYSQL_PASSWORD=mysqlpw quay.io/debezium/pdpDataProjections-mysql:1.9
+docker run -it --rm --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=debezium -e MYSQL_USER=mysqluser -e MYSQL_PASSWORD=mysqlpw quay.io/debezium/example-mysql:1.9
 
 MYSQL CLIENT
 docker run -it --rm --name mysqlterm --link mysql --rm mysql:8.0 sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"$MYSQL_ENV_MYSQL_ROOT_PASSWORD"'
@@ -61,6 +62,11 @@ curl -i -X GET -H "Accept:application/json" localhost:8083/connectors/inventory-
 
 WATCH TOPIC FOR CUSTOMERS TABLE
 docker run -it --rm --name watcher --link zookeeper:zookeeper --link kafka:kafka quay.io/debezium/kafka:1.9 watch-topic -a -k dbserver1.inventory.customers
+
+CHECK TOPICS INSIDE KAFKA CONTAINER CLI
+bin/kafka-topics.sh --bootstrap-server=kafka:9092 --list
+LONG RUNNING PROCESS WATCHING EVENTS ON SPECIFIC TOPIC FROM KAFKA CONTAINER CLI
+bin/kafka-console-consumer.sh --topic dbserver1.inventory.customers --from-beginning --bootstrap-server kafka:9092
 
 CHANGE DATA
 UPDATE customers SET first_name='Anne Marie' WHERE id=1004;
