@@ -56,7 +56,7 @@ DATABASE_URL='mysql://byasxa4qr50u:pscale_pw_22gILJ5eVrzho1dlsFGACX2-rXtiXOx2-Ck
 curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "planetscale", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "43cu7juzawsn.us-east-4.psdb.cloud", "database.port": "3306", "database.user": "byasxa4qr50u", "database.password": "pscale_pw_22gILJ5eVrzho1dlsFGACX2-rXtiXOx2-Ck7vgd8CBI", "database.server.id": "184056", "database.server.name": "planetscale", "database.include.list": "tester", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.planetscale", "database.allowPublicKeyRetrieval":"true", "database.ssl.mode": "preferred", "snapshot.locking.mode": "none" } }'
 
 DEBEZIUM CONNECTOR (to monitor mysql binlog, tutorial configured for one topic and one replica)
-curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "bloop", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "mysql", "database.port": "3306", "database.user": "root", "database.password": "debezium", "database.server.id": "24242", "database.server.name": "bloop", "database.include.list": "tester", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.bloop", "database.allowPublicKeyRetrieval":"true", "database.ssl.mode": "preferred", "snapshot.locking.mode": "none" } }'
+curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "inventory-connector", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "mysql", "database.port": "3306", "database.user": "debezium", "database.password": "dbz", "database.server.id": "184054", "database.server.name": "dbserver1", "database.include.list": "inventory", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.inventory" } }'
 
 VEIRFY DEBEZIUM CONNECTOR
 curl -H "Accept:application/json" localhost:8083/connectors/
@@ -71,6 +71,10 @@ CHECK TOPICS INSIDE KAFKA CONTAINER CLI
 bin/kafka-topics.sh --bootstrap-server=kafka:9092 --list
 LONG RUNNING PROCESS WATCHING EVENTS ON SPECIFIC TOPIC FROM KAFKA CONTAINER CLI
 bin/kafka-console-consumer.sh --topic dbserver1.inventory.customers --from-beginning --bootstrap-server kafka:9092
+
+TRY AND ACCESS TOPIC LOCALLY
+https://stackoverflow.com/questions/64283594/kafka-events-published-from-the-host-machine-are-not-consumed-by-the-applicatio EXPLANATION
+kcat -b localhost:9092 -t dbserver1.inventory.customers
 
 CHANGE DATA
 UPDATE customers SET first_name='Anne Marie' WHERE id=1004;

@@ -1,21 +1,26 @@
 version: "2"
 services:
   zookeeper:
-    image: quay.io/debezium/zookeeper:1.9
+    image: "bitnami/zookeeper:latest"
     ports:
-      - 2181:2181
-      - 3888:3888
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
   kafka:
-    image: quay.io/debezium/kafka:latest
-    depends_on:
-      - zookeeper
-    ports:
-      - 9092:9092
+    image: "bitnami/kafka:latest"
     links:
       - zookeeper
+    ports:
+      - "9093:9093"
     environment:
-      KAFKA_BROKER_ID: 1
-      ZOOKEEPER_CONNECT: zookeeper:2181
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+    depends_on:
+      - zookeeper
   mysql:
     # mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory
     image: quay.io/debezium/example-mysql:1.9
