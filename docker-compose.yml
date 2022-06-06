@@ -18,7 +18,7 @@ services:
       ZOOKEEPER_CONNECT: zookeeper:2181
   mysql:
     # mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory
-    image: quay.io/debezium/example-mysql:latest
+    image: quay.io/debezium/example-mysql:1.9
     ports:
       - 3306:3306
     environment:
