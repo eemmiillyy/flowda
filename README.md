@@ -74,7 +74,7 @@ bin/kafka-console-consumer.sh --topic dbserver1.inventory.customers --from-begin
 
 TRY AND ACCESS TOPIC LOCALLY
 https://stackoverflow.com/questions/64283594/kafka-events-published-from-the-host-machine-are-not-consumed-by-the-applicatio EXPLANATION
-kcat -b localhost:9092 -t dbserver1.inventory.customers
+kcat -b localhost:9093 -t dbserver1.inventory.customers
 
 CHANGE DATA
 UPDATE customers SET first_name='Anne Marie' WHERE id=1004;
@@ -94,6 +94,9 @@ localhost:8081 to access the Flink UI Dashboard.
 
 FLINK JOB
 ./bin/flink run pdpDataProjections/streaming/WordCount.jar
+
+WITH ARGUMENTS
+/bin/flink run /Users/emilymorgan/Desktop/pdpDataProjections/target/pdpDataProjections-1.0-SNAPSHOT.jar --topicName test --schemaContents test2 --sqlQuery test3
 
 STOP FLINK
 ./bin/stop-cluster.sh

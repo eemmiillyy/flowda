@@ -1,0 +1,278 @@
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "struct",
+        "fields": [
+          { "type": "string", "optional": false, "field": "version" },
+          { "type": "string", "optional": false, "field": "connector" },
+          { "type": "string", "optional": false, "field": "name" },
+          { "type": "int64", "optional": false, "field": "ts_ms" },
+          {
+            "type": "string",
+            "optional": true,
+            "name": "io.debezium.data.Enum",
+            "version": 1,
+            "parameters": { "allowed": "true,last,false,incremental" },
+            "default": "false",
+            "field": "snapshot"
+          },
+          { "type": "string", "optional": false, "field": "db" },
+          { "type": "string", "optional": true, "field": "sequence" },
+          { "type": "string", "optional": true, "field": "table" },
+          { "type": "int64", "optional": false, "field": "server_id" },
+          { "type": "string", "optional": true, "field": "gtid" },
+          { "type": "string", "optional": false, "field": "file" },
+          { "type": "int64", "optional": false, "field": "pos" },
+          { "type": "int32", "optional": false, "field": "row" },
+          { "type": "int64", "optional": true, "field": "thread" },
+          { "type": "string", "optional": true, "field": "query" }
+        ],
+        "optional": false,
+        "name": "io.debezium.connector.mysql.Source",
+        "field": "source"
+      },
+      { "type": "string", "optional": true, "field": "databaseName" },
+      { "type": "string", "optional": true, "field": "schemaName" },
+      { "type": "string", "optional": true, "field": "ddl" },
+      {
+        "type": "array",
+        "items": {
+          "type": "struct",
+          "fields": [
+            { "type": "string", "optional": false, "field": "type" },
+            { "type": "string", "optional": false, "field": "id" },
+            {
+              "type": "struct",
+              "fields": [
+                {
+                  "type": "string",
+                  "optional": true,
+                  "field": "defaultCharsetName"
+                },
+                {
+                  "type": "array",
+                  "items": { "type": "string", "optional": false },
+                  "optional": true,
+                  "field": "primaryKeyColumnNames"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "struct",
+                    "fields": [
+                      { "type": "string", "optional": false, "field": "name" },
+                      {
+                        "type": "int32",
+                        "optional": false,
+                        "field": "jdbcType"
+                      },
+                      {
+                        "type": "int32",
+                        "optional": true,
+                        "field": "nativeType"
+                      },
+                      {
+                        "type": "string",
+                        "optional": false,
+                        "field": "typeName"
+                      },
+                      {
+                        "type": "string",
+                        "optional": true,
+                        "field": "typeExpression"
+                      },
+                      {
+                        "type": "string",
+                        "optional": true,
+                        "field": "charsetName"
+                      },
+                      { "type": "int32", "optional": true, "field": "length" },
+                      { "type": "int32", "optional": true, "field": "scale" },
+                      {
+                        "type": "int32",
+                        "optional": false,
+                        "field": "position"
+                      },
+                      {
+                        "type": "boolean",
+                        "optional": true,
+                        "field": "optional"
+                      },
+                      {
+                        "type": "boolean",
+                        "optional": true,
+                        "field": "autoIncremented"
+                      },
+                      {
+                        "type": "boolean",
+                        "optional": true,
+                        "field": "generated"
+                      },
+                      { "type": "string", "optional": true, "field": "comment" }
+                    ],
+                    "optional": false,
+                    "name": "io.debezium.connector.schema.Column"
+                  },
+                  "optional": false,
+                  "field": "columns"
+                },
+                { "type": "string", "optional": true, "field": "comment" }
+              ],
+              "optional": false,
+              "name": "io.debezium.connector.schema.Table",
+              "field": "table"
+            }
+          ],
+          "optional": false,
+          "name": "io.debezium.connector.schema.Change"
+        },
+        "optional": false,
+        "field": "tableChanges"
+      }
+    ],
+    "optional": false,
+    "name": "io.debezium.connector.mysql.SchemaChangeValue"
+  },
+  "payload": {
+    "source": {
+      "version": "1.9.2.Final",
+      "connector": "mysql",
+      "name": "dbserver1",
+      "ts_ms": 1654523666031,
+      "snapshot": "true",
+      "db": "inventory",
+      "sequence": null,
+      "table": "addresses",
+      "server_id": 0,
+      "gtid": null,
+      "file": "mysql-bin.000003",
+      "pos": 157,
+      "row": 0,
+      "thread": null,
+      "query": null
+    },
+    "databaseName": "inventory",
+    "schemaName": null,
+    "ddl": "CREATE TABLE `addresses` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `customer_id` int NOT NULL,\n  `street` varchar(255) NOT NULL,\n  `city` varchar(255) NOT NULL,\n  `state` varchar(255) NOT NULL,\n  `zip` varchar(255) NOT NULL,\n  `type` enum('SHIPPING','BILLING','LIVING') NOT NULL,\n  PRIMARY KEY (`id`),\n  KEY `address_customer` (`customer_id`),\n  CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`)\n) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci",
+    "tableChanges": [
+      {
+        "type": "CREATE",
+        "id": "\"inventory\".\"addresses\"",
+        "table": {
+          "defaultCharsetName": "utf8mb4",
+          "primaryKeyColumnNames": ["id"],
+          "columns": [
+            {
+              "name": "id",
+              "jdbcType": 4,
+              "nativeType": null,
+              "typeName": "INT",
+              "typeExpression": "INT",
+              "charsetName": null,
+              "length": null,
+              "scale": null,
+              "position": 1,
+              "optional": false,
+              "autoIncremented": true,
+              "generated": true,
+              "comment": null
+            },
+            {
+              "name": "customer_id",
+              "jdbcType": 4,
+              "nativeType": null,
+              "typeName": "INT",
+              "typeExpression": "INT",
+              "charsetName": null,
+              "length": null,
+              "scale": null,
+              "position": 2,
+              "optional": false,
+              "autoIncremented": false,
+              "generated": false,
+              "comment": null
+            },
+            {
+              "name": "street",
+              "jdbcType": 12,
+              "nativeType": null,
+              "typeName": "VARCHAR",
+              "typeExpression": "VARCHAR",
+              "charsetName": "utf8mb4",
+              "length": 255,
+              "scale": null,
+              "position": 3,
+              "optional": false,
+              "autoIncremented": false,
+              "generated": false,
+              "comment": null
+            },
+            {
+              "name": "city",
+              "jdbcType": 12,
+              "nativeType": null,
+              "typeName": "VARCHAR",
+              "typeExpression": "VARCHAR",
+              "charsetName": "utf8mb4",
+              "length": 255,
+              "scale": null,
+              "position": 4,
+              "optional": false,
+              "autoIncremented": false,
+              "generated": false,
+              "comment": null
+            },
+            {
+              "name": "state",
+              "jdbcType": 12,
+              "nativeType": null,
+              "typeName": "VARCHAR",
+              "typeExpression": "VARCHAR",
+              "charsetName": "utf8mb4",
+              "length": 255,
+              "scale": null,
+              "position": 5,
+              "optional": false,
+              "autoIncremented": false,
+              "generated": false,
+              "comment": null
+            },
+            {
+              "name": "zip",
+              "jdbcType": 12,
+              "nativeType": null,
+              "typeName": "VARCHAR",
+              "typeExpression": "VARCHAR",
+              "charsetName": "utf8mb4",
+              "length": 255,
+              "scale": null,
+              "position": 6,
+              "optional": false,
+              "autoIncremented": false,
+              "generated": false,
+              "comment": null
+            },
+            {
+              "name": "type",
+              "jdbcType": 1,
+              "nativeType": null,
+              "typeName": "ENUM",
+              "typeExpression": "ENUM",
+              "charsetName": "utf8mb4",
+              "length": 1,
+              "scale": null,
+              "position": 7,
+              "optional": false,
+              "autoIncremented": false,
+              "generated": false,
+              "comment": null
+            }
+          ],
+          "comment": null
+        }
+      }
+    ]
+  }
+}
