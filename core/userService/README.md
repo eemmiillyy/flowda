@@ -1,13 +1,13 @@
 # API Documentation
 
-## `POST /createDatabaseConnection`
+## `POST /createConnector`
 
 Sets up Debezium connection via POST request to service. Kafka must be up and running already.
 
 connectionString: string - connection to your database. Must have root access.
 environmentId: string - environment id from PDP to name the database as (topic in kafka aswell)
 
-    curl -i -H 'Accept: application/json' -d 'connectionString=XXXXX&environmentId=XXXXX' http://localhost:7000/createDatabaseConnection
+    curl -i -H 'Accept: application/json' -d 'connectionString=XXXXX&environmentId=XXXXX' http://localhost:7000/createConnector
 
 ### Response
 
@@ -21,7 +21,7 @@ environmentId: string - environment id from PDP to name the database as (topic i
 
     {"id":1,"name":"Foo","status":"new"}
 
-## `POST /createCachedQuery`
+## `POST /createJob`
 
 Creates a kafka connector, and processor job on flink with the given input via REST API
 Each flink service will connect and publish to the same kafka instance under a different topic (environment Id).
@@ -31,7 +31,7 @@ environmentId: string - environment id from PDP.
 schema: string - prisma schema of your connected database.
 sqlQuery: string - aggregate sql query you want to run.
 
-    curl -i -H 'Accept: application/json' -d 'connectionString=AAAAA&environmentId=XXXXX&schema=YYYYY&sqlQuery=ZZZZZ' http://localhost:7000/createCachedQuery
+    curl -i -H 'Accept: application/json' -d 'connectionString=AAAAA&environmentId=XXXXX&schema=YYYYY&sqlQuery=ZZZZZ' http://localhost:7000/createJob
 
 ### Response
 
@@ -45,14 +45,14 @@ sqlQuery: string - aggregate sql query you want to run.
 
     {"id":1,"name":"Foo","status":"new"}
 
-## `POST /deleteDatabaseConnection`
+## `POST /deleteJob`
 
 Deletes the kafka connector and cancels the flink job
 
 connectionString: string - connection to your database. Must have root access.
 environmentId: string - environment id from PDP.
 
-    curl -i -H 'Accept: application/json' -d 'connectionString=AAAAA&environmentId=XXXXX' http://localhost:7000/deleteDatabaseConnection
+    curl -i -H 'Accept: application/json' -d 'connectionString=AAAAA&environmentId=XXXXX' http://localhost:7000/deleteJob
 
 ### Response
 
@@ -66,14 +66,14 @@ environmentId: string - environment id from PDP.
 
     {"id":1,"name":"Foo","status":"new"}
 
-## `POST /checkJobStatus`
+## `GET /jobStatus`
 
 Checks the status of the kafka source connector and the flink job
 
 connectionString: string - connection to your database. Must have root access.
 environmentId: string - environment id from PDP.
 
-    curl -i -H 'Accept: application/json' -d 'connectionString=AAAAA&environmentId=XXXXX' http://localhost:7000/checkJobStatus
+    curl -i -H 'Accept: application/json' http://localhost:7000/jobStatus:id
 
 ### Response
 

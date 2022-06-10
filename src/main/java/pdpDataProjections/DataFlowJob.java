@@ -22,47 +22,49 @@ public class DataFlowJob
         EnvironmentSettings env = EnvironmentSettings.newInstance().build();
         TableEnvironment tableEnv = TableEnvironment.create(env);
         
-        // tableEnv.executeSql("CREATE TABLE kafka_source (\n" +
-        //     "    id  BIGINT,\n" +
-        //     "    first_name VARCHAR,\n" +
-        //     "    last_name VARCHAR\n" +
-        //     ") WITH (\n" +
-        //     "    'connector' = 'kafka',\n" +
-        //     "    'topic'     = 'dbserver1.inventory.customers',\n" +
-        //     "    'properties.bootstrap.servers' = 'localhost:9093',\n" +
-        //     "    'properties.group.id' = '1391083',\n" +
-        //     "     'scan.startup.mode' = 'earliest-offset',\n" +
-        //     "    'format'    = 'json'\n" +
-        //     ")");
+        tableEnv.executeSql("CREATE TABLE orders (\n" +
+            "    order_number BIGINT,\n" +
+            "    purchaser BIGINT,\n" +
+            "    quantity BIGINT,\n" +
+            "    product_id BIGINT,\n" +
+            "    event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, \n" +
+            "    WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND \n" +
+            ") WITH (\n" +
+            "    'connector' = 'kafka',\n" +
+            "    'topic'     = 'dbserver1.inventory.orders',\n" +
+            "    'properties.bootstrap.servers' = 'localhost:9093',\n" +
+            "    'properties.group.id' = '1391083',\n" +
+            "    'debezium-json.schema-include' = 'true', \n" +
+            "     'scan.startup.mode' = 'earliest-offset',\n" +
+            "    'format'    = 'debezium-json'\n" +
+            ")");
 
-        tableEnv.executeSql("CREATE TABLE kafka_source (\n" +
+         // Historical example to group based on one tables changes over daily time x column
+         // order revenue per product per minute
+     
+        // Note that this query does not check for updates every hour, it only checks the past hours when there is an update. 
+        // Therefore you will not automatically see results for last hour slots until an update is made during your current hour slot.
+        // should be 2 between 12 and 1 
+        //tableEnv.executeSql("SELECT SUM(quantity) as `qty`, TUMBLE_START(event_time, interval '1' hour), TUMBLE_END(event_time, interval '1' hour) FROM orders group by TUMBLE(event_time, interval '1' hour);").print();
+
+        tableEnv.executeSql("CREATE TABLE products_on_hand (\n" +
         "    product_id  BIGINT,\n" +
         "    quantity BIGINT,\n" +
-        "    event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL \n" +
+        "    event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, \n" +
+        "    WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND \n" +
         ") WITH (\n" +
         "    'connector' = 'kafka',\n" +
         "    'topic'     = 'dbserver1.inventory.products_on_hand',\n" +
         "    'properties.bootstrap.servers' = 'localhost:9093',\n" +
         "    'debezium-json.schema-include' = 'true', \n" +
         "    'properties.group.id' = '1391083',\n" +
-        "     'scan.startup.mode' = 'earliest-offset',\n" +
+        "    'scan.startup.mode' = 'earliest-offset',\n" +
         "    'format'    = 'debezium-json'\n" +
         ")");
 
-        // tableEnv.executeSql("SELECT COUNT(*) AS count_alias\n" +
-        //  " FROM kafka_source\n" +
-        //  " GROUP BY id;").print();
-       // tableEnv.executeSql("SELECT quantity AS quan FROM kafka_source GROUP BY product_id;").print();
-        System.out.println(Arrays.toString(tableEnv.listCatalogs()));
-        System.out.println(Arrays.toString(tableEnv.listDatabases()));
-        System.out.println(Arrays.toString(tableEnv.listTables()));
-        // tableEnv.executeSql("SELECT product_id, COUNT(quantity) as cnt\n" +
-        //  " FROM kafka_source\n" +
-        //  " GROUP BY product_id;").print();
-        // Historical example to group based on one tables changes over daily time x column
-        tableEnv.executeSql("SELECT product_id, TUMBLE_END(event_time, INTERVAL '10' MINUTE) AS endT, COUNT(quantity) as cnt FROM kafka_source GROUP BY product_id, TUMBLE(event_time, INTERVAL '10' MINUTE);").print();
-        //tableEnv.executeSql("SELECT * FROM kafka_source;").print();
-        //tableEnv.executeSql("SELECT product_id, SUM(quantity) as summedQ FROM kafka_source GROUP BY product_id;").print();
+
+        // Cumulative sum example
+        tableEnv.executeSql("SELECT SUM(quantity) as summedQ FROM products_on_hand;").print();
     }
 }
 
