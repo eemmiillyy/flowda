@@ -1,0 +1,8 @@
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/Server.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/Bootstrap.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/ArgumentValidator.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/KafkaClient.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/FlinkClient.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/FlinkArtifactGenerator.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/DebeziumArtifactGenerator.java
+/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/DebeziumClient.java

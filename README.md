@@ -75,6 +75,7 @@ bin/kafka-console-consumer.sh --topic dbserver1.inventory.customers --from-begin
 TRY AND ACCESS TOPIC LOCALLY
 https://stackoverflow.com/questions/64283594/kafka-events-published-from-the-host-machine-are-not-consumed-by-the-applicatio EXPLANATION
 kcat -b localhost:9093 -t dbserver1.inventory.customers
+kcat -b localhost:9093 -t dbserver1.inventory.products_on_hand_output
 
 CHANGE DATA
 UPDATE customers SET first_name='Anne Marie' WHERE id=1004;
@@ -124,3 +125,10 @@ SWITCHING JAVA VERSION
 https://stackoverflow.com/questions/21964709/how-to-set-or-change-the-default-java-jdk-version-on-macos
 
 Binary is in scala, the source has the actual flink source code.
+
+# Development
+
+`cd userSource`
+`mvn package`
+// start server
+`java -jar target/userSource-1.0-SNAPSHOT.jar`
