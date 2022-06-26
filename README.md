@@ -132,3 +132,8 @@ Binary is in scala, the source has the actual flink source code.
 `mvn package`
 // start server
 `java -jar target/userSource-1.0-SNAPSHOT.jar`
+Kill java PID (kill -9 [PID]) with `ps -ef | grep java `
+// to add a task manager
+`bin/taskmanager.sh start`
+to edit flink app configuration
+`conf/flink-conf.yaml`

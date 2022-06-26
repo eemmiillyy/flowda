@@ -74,7 +74,6 @@ public class Bootstrap {
     server = vertexInstance.createHttpServer();
     g = new Gson();
 
-    KafkaClient kafka = new KafkaClient();
     // Create a Router
     Router router = Router.router(vertexInstance);
     router.route().handler(BodyHandler.create());
@@ -190,6 +189,7 @@ public class Bootstrap {
           // TODO authorisation
 
           // TODO input validation
+          KafkaClient kafka = new KafkaClient();
 
           // Generate arguments for flink job
           FlinkArtifactGenerator sourceTable = new FlinkArtifactGenerator(
