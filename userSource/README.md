@@ -45,3 +45,13 @@ Response
 {
 "name": "..."
 }
+
+server.properties
+consumer.properties
+connect.properties
+
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=user -X sasl.password=bitnami -L
+
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=user -X sasl.password=bitnami -t newtop -P test
+
+kafka-topics.sh --create --bootstrap-server kafka:9092 --topic sdelivery --replication-factor 1 --partitions 1
