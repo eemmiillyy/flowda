@@ -1,6 +1,10 @@
 package userSource;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+
 import com.google.gson.Gson;
+
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -9,8 +13,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 
 public class Bootstrap {
 
@@ -203,8 +205,10 @@ public class Bootstrap {
                 args.databaseName,
                 args.tableName
               );
+
+            System.out.println(sourceString);
           } catch (Throwable e) {
-            context.json(new JsonObject().put("name", e.getMessage()));
+            context.json(new JsonObject().put("error", e.getMessage()));
             return;
           }
 
@@ -235,7 +239,7 @@ public class Bootstrap {
               .runJob(
                 validJSON,
                 client,
-                "/jars/520bd0c3-25fb-4a47-8d0a-9ae7a0a60b3e_processingSource-1.0-SNAPSHOT.jar/run"
+                "/jars/a94e4597-6bd9-4a7f-a19f-f3708ee13195_processingSource-1.0-SNAPSHOT.jar/run"
               )
               .onSuccess(
                 response -> {

@@ -24,6 +24,22 @@
   <artifactId>gson</artifactId>
   <version>2.9.0</version>
 	</dependency>
+
+  <!-- https://mvnrepository.com/artifact/org.infinispan/infinispan-core -->
+<dependency>
+    <groupId>org.infinispan</groupId>
+    <artifactId>infinispan-core</artifactId>
+    <version>14.0.0.Dev03</version>
+</dependency>
+
+
+<!-- https://mvnrepository.com/artifact/org.infinispan/infinispan-commons -->
+<dependency>
+    <groupId>org.infinispan</groupId>
+    <artifactId>infinispan-commons</artifactId>
+    <version>14.0.0.Dev03</version>
+</dependency>
+
     <dependency>
     <groupId>org.apache.kafka</groupId>
     <artifactId>kafka-clients</artifactId>

@@ -95,6 +95,7 @@ public class FlinkArtifactGenerator {
     );
   }
 
+  // TODO Reuse logic for source and sink config
   public String createSinkTable(
     String environmentId,
     String databaseName,
@@ -117,6 +118,9 @@ public class FlinkArtifactGenerator {
       "_output" +
       "'," +
       "'properties.bootstrap.servers' = 'localhost:9093'," +
+      " 'properties.sasl.mechanism' = 'SCRAM-SHA-256', " +
+      " 'properties.security.protocol' = 'SASL_PLAINTEXT', " +
+      " 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;', " +
       "'format' = 'debezium-json'" +
       ")"
     );
@@ -139,18 +143,9 @@ public class FlinkArtifactGenerator {
     System.out.println(environmentId);
     System.out.println(databaseName);
     System.out.println(tableName);
-
-    System.out.println(
-      "Number of threads in kafka client before running" + Thread.activeCount()
-    );
-
     // TODO this creation is blocking so should have it's own thread.
     // One Consumer Per Thread
     KafkaConsumer<String, String> client = kafka.create();
-
-    System.out.println(
-      "Number of threads in kafka client after running" + Thread.activeCount()
-    );
 
     // Check if topic exists
     Map<String, List<PartitionInfo>> topicMap = client.listTopics();
@@ -231,11 +226,15 @@ public class FlinkArtifactGenerator {
         "'," +
         " 'properties.bootstrap.servers' = 'localhost:9093'," +
         " 'properties.group.id' = '1391083'," +
+        " 'properties.sasl.mechanism' = 'SCRAM-SHA-256', " +
+        " 'properties.security.protocol' = 'SASL_PLAINTEXT', " +
+        " 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;', " +
         " 'debezium-json.schema-include' = 'true', " +
         " 'scan.startup.mode' = 'earliest-offset'," +
         " 'format'    = 'debezium-json'" +
         ")";
       return output;
+      // TODO cannot connect with these configs - need SCRAM specific config
     } catch (JsonSyntaxException e) {
       // THROW error?
       return e.getMessage();
