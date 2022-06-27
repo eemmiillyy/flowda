@@ -50,8 +50,55 @@ server.properties
 consumer.properties
 connect.properties
 
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=user -X sasl.password=bitnami -L
+PUBLISH TO TEST TOPIC ON MACHINE
 
 kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=user -X sasl.password=bitnami -t newtop -P test
 
-kafka-topics.sh --create --bootstrap-server kafka:9092 --topic sdelivery --replication-factor 1 --partitions 1
+CREATE TEST TOPIC IN DOCKER
+
+kafka-topics.sh --create --bootstrap-server kafka:9092 --topic newtopicbanned --replication-factor 1 --partitions 1
+
+READ TOPIC FROM DEFAULT USER
+
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=emily -X sasl.password=bleepbloop -L
+
+DYNAMICALLY ADD SCRAM USER
+
+kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=bleepbloop],SCRAM-SHA-512=[password=bleepbloop]' --entity-type users --entity-name emily
+
+kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=alice-secret],SCRAM-SHA-512=[password=alice-secret]' --entity-type users --entity-name alice
+
+THEN
+
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=alice -X sasl.password=alice-secret -L
+
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=emily -X sasl.password=bleepbloop -L
+
+ADD ACL FOR NEW USER
+
+kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --topic "\*"
+
+kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:alice --operation ALL --topic "newtopicbanned"
+
+bin/kafka-acls.sh --add --cluster --operation Create --authorizer-properties zookeeper.connect=zookeeper:2181 --allow-principal User:admin
+
+IN SERVER PROPERTIES
+
+authorizer.class.name=kafka.security.authorizer.AclAuthorizer
+super.users=User:emily;User:ANONYMOUS
+
+deploy
+edit server.properties
+restart
+create topic
+test read (blocked)
+create scram user 1
+create scram user 2
+test reads work for both now
+add ACL for user 1 on all topics
+user 2 is blocked now
+create topic 2
+check user 1 can still read
+add ACL for user 2 for this topic
+check user 2 can read
+works!
