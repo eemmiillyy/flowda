@@ -188,25 +188,61 @@ public class Bootstrap {
             );
           }
 
-          // TODO authorisation
+          // TODO authorisation with JWT to make sure they control the db.
 
-          // TODO input validation
-          KafkaClient kafka = new KafkaClient();
+          // TODO Abstract this into Kafka source module
+          // Create access token for user
+          ApiKey apiKeyFactory = new ApiKey();
+          String apiKeyForUser;
+          try {
+            apiKeyForUser = apiKeyFactory.create();
+            System.out.println(apiKeyForUser);
+          } catch (Exception e) {
+            context.json(new JsonObject().put("error", e.getMessage()));
+            return;
+          }
 
+          // Create kafka user for environmentId/accessToken
+          KafkaShellClient kafkaShellClient = new KafkaShellClient();
+          try {
+            kafkaShellClient.addACLUser(args.environmentId, apiKeyForUser);
+          } catch (Exception e) {
+            context.json(new JsonObject().put("error", e.getMessage()));
+            return;
+          }
+
+          // Group
+          try {
+            kafkaShellClient.addACLRuleConsumer(args.environmentId); // Create kafka ACL for environmentId
+          } catch (Exception e) {
+            context.json(new JsonObject().put("error", e.getMessage()));
+            return;
+          }
+
+          // Create kafka ACL for user and topic
+          try {
+            kafkaShellClient.addACLRule(args.environmentId); // Create kafka ACL for environmentId
+          } catch (Exception e) {
+            context.json(new JsonObject().put("error", e.getMessage()));
+            return;
+          }
+
+          // // Create kafka client with the kafka user that has access to read/write to environmentId.*
+          // // If there was an error at any point, delete the ACL for the user.
+
+          // // TODO input validation
           // Generate arguments for flink job
+          // TODO abstract into own Aritfact Source module
           FlinkArtifactGenerator sourceTable = new FlinkArtifactGenerator(
-            kafka
+            args.environmentId,
+            apiKeyForUser
           );
           String sourceString;
           try {
             sourceString =
-              sourceTable.createSourceTable(
-                args.environmentId,
-                args.databaseName,
-                args.tableName
-              );
+              sourceTable.createSourceTable(args.databaseName, args.tableName);
 
-            System.out.println(sourceString);
+            System.out.println("SOURCE......." + sourceString);
           } catch (Throwable e) {
             context.json(new JsonObject().put("error", e.getMessage()));
             return;
@@ -216,13 +252,14 @@ public class Bootstrap {
             args.tableName,
             args.fieldName
           );
+          System.out.println("AGG......." + agreggateString);
 
           String sinkString = sourceTable.createSinkTable(
-            args.environmentId,
             args.databaseName,
             args.tableName,
             args.fieldName
           );
+          System.out.println("SINK......." + sinkString);
 
           // The field to sum needs to be an integer.
           String validJSON = String.format(
@@ -232,27 +269,36 @@ public class Bootstrap {
             sinkString,
             args.tableName
           );
+          System.out.println("VALID......." + validJSON);
+
           FlinkClient flinkClient = new FlinkClient();
+
+          System.out.println("FLINK CLIENT CREATED.......");
 
           try {
             flinkClient
               .runJob(
                 validJSON,
                 client,
-                "/jars/a94e4597-6bd9-4a7f-a19f-f3708ee13195_processingSource-1.0-SNAPSHOT.jar/run"
+                "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
               )
               .onSuccess(
                 response -> {
+                  System.out.println("SUCCESS.......");
                   // TODO send the job id back to user so they can check the status with it
                   System.out.println(response.body());
                   context.json(
                     new JsonObject()
-                    .put("name", "successfully started Flink job.")
+                      .put("name", "successfully started Flink job.")
+                      .put("environmentId", args.environmentId)
+                      .put("apiKey", apiKeyForUser)
+                      .put("jobId", response.body()) // TODO extract on job id
                   );
                 }
               )
               .onFailure(
                 error -> {
+                  System.out.println("FAILED.......");
                   System.out.println(error);
                   context.json(
                     new JsonObject().put("error", "error launching flink job.")

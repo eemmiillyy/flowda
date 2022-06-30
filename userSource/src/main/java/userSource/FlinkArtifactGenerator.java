@@ -2,14 +2,12 @@ package userSource;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.PartitionInfo;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -81,10 +79,26 @@ public class FlinkArtifactGenerator {
     Payload payload;
   }
 
-  KafkaClient kafka;
+  KafkaConsumer<String, String> client;
+  private String kafkaUser;
+  private String kafkaUserApiKey;
+  private String loginModule;
 
-  public FlinkArtifactGenerator(KafkaClient client) {
-    this.kafka = client;
+  public FlinkArtifactGenerator(String kafkaUser, String kafkaUserApiKey) {
+    System.out.println("BEFORE KAFKA CREATE.......");
+
+    KafkaClient kafka = new KafkaClient(kafkaUser, kafkaUserApiKey);
+    System.out.println("KAFKA CREATE.......");
+    this.client = kafka.create(kafkaUser);
+    System.out.println("AFTER CREATE.......");
+    this.kafkaUser = kafkaUser;
+    this.kafkaUserApiKey = kafkaUserApiKey;
+    this.loginModule =
+      String.format(
+        " 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=%s password=%s;', ",
+        "emily",
+        "bleepbloop"
+      );
   }
 
   public String createAgreggateQuery(String tableName, String fieldName) {
@@ -97,7 +111,6 @@ public class FlinkArtifactGenerator {
 
   // TODO Reuse logic for source and sink config
   public String createSinkTable(
-    String environmentId,
     String databaseName,
     String tableName,
     String fieldName
@@ -110,7 +123,7 @@ public class FlinkArtifactGenerator {
       ") WITH (" +
       "'connector' = 'kafka'," +
       "'topic' = '" +
-      environmentId +
+      this.kafkaUser +
       "." +
       databaseName +
       "." +
@@ -120,7 +133,7 @@ public class FlinkArtifactGenerator {
       "'properties.bootstrap.servers' = 'localhost:9093'," +
       " 'properties.sasl.mechanism' = 'SCRAM-SHA-256', " +
       " 'properties.security.protocol' = 'SASL_PLAINTEXT', " +
-      " 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;', " +
+      this.loginModule +
       "'format' = 'debezium-json'" +
       ")"
     );
@@ -134,27 +147,17 @@ public class FlinkArtifactGenerator {
    * @return The string necessary for a Flink Kafka source connector to be started.
    * @throws Throwable
    */
-  public String createSourceTable(
-    String environmentId,
-    String databaseName,
-    String tableName
-  )
+  public String createSourceTable(String databaseName, String tableName)
     throws Throwable {
-    System.out.println(environmentId);
-    System.out.println(databaseName);
-    System.out.println(tableName);
-    // TODO this creation is blocking so should have it's own thread.
-    // One Consumer Per Thread
-    KafkaConsumer<String, String> client = kafka.create();
-
     // Check if topic exists
-    Map<String, List<PartitionInfo>> topicMap = client.listTopics();
-    if (!(topicMap.containsKey(environmentId))) {
-      throw new Exception("environmentId (topic name) is wrong");
-    }
-
+    // Map<String, List<PartitionInfo>> topicMap = client.listTopics();
+    // if (!(topicMap.containsKey(this.kafkaUser))) {
+    //   throw new Exception("environmentId (topic name) is wrong");
+    // }
+    System.out.println("BEFORE SUBs.......");
     // Subscribe to schema topic
-    client.subscribe(Arrays.asList(environmentId));
+    client.subscribe(Arrays.asList(this.kafkaUser));
+    System.out.println("AFTER SUBs.......");
 
     boolean matched = false;
 
@@ -164,6 +167,8 @@ public class FlinkArtifactGenerator {
 
     try {
       ConsumerRecords<String, String> records = client.poll(1000);
+      System.out.println("AFTER poll.......");
+
       for (ConsumerRecord<String, String> record : records) {
         if (record.value().contains(toMatch)) {
           output = record.value();
@@ -189,7 +194,7 @@ public class FlinkArtifactGenerator {
     try {
       DataObject obj = g.fromJson(sql, DataObject.class);
 
-      if (Objects.equals(obj.payload.source.name, environmentId)) {
+      if (Objects.equals(obj.payload.source.name, this.kafkaUser)) {
         if (Objects.equals(obj.payload.databaseName, databaseName)) {
           if (Objects.equals(obj.payload.source.table, tableName)) {
             if (obj.payload.tableChanges.length > 0) {
@@ -212,29 +217,31 @@ public class FlinkArtifactGenerator {
         Object value = entry.getValue();
         output += key + " " + value + ", ";
       }
+
       output +=
         "event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  " +
         "WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND " +
         ") WITH (" +
         " 'connector' = 'kafka'," +
         "'topic'     = '" +
-        environmentId +
+        this.kafkaUser +
         "." +
         databaseName +
         "." +
         tableName +
         "'," +
         " 'properties.bootstrap.servers' = 'localhost:9093'," +
-        " 'properties.group.id' = '1391083'," +
+        " 'properties.group.id' = '" +
+        this.kafkaUser +
+        "'," +
         " 'properties.sasl.mechanism' = 'SCRAM-SHA-256', " +
         " 'properties.security.protocol' = 'SASL_PLAINTEXT', " +
-        " 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;', " +
+        this.loginModule +
         " 'debezium-json.schema-include' = 'true', " +
         " 'scan.startup.mode' = 'earliest-offset'," +
         " 'format'    = 'debezium-json'" +
         ")";
       return output;
-      // TODO cannot connect with these configs - need SCRAM specific config
     } catch (JsonSyntaxException e) {
       // THROW error?
       return e.getMessage();
