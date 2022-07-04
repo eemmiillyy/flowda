@@ -1,6 +1,7 @@
 package userSource;
 
 import java.security.GeneralSecurityException;
+import java.util.Base64;
 import java.util.Properties;
 
 import org.apache.commons.crypto.random.CryptoRandom;
@@ -23,7 +24,7 @@ public class ApiKey {
 
     cryptoRandom.nextBytes(randomBytes);
 
-    return "X32+lVL+Vdjz+UCa09F9UkDVpguCmkRSAf3qw3Xcm94="; //new String(Base64.getEncoder().encode(randomBytes));
+    return new String(Base64.getEncoder().encode(randomBytes));
   }
 
   // TODO
