@@ -23,27 +23,43 @@ Kill java PID (kill -9 [PID]) with `ps -ef | grep java`
 
 1. install vim (login with root, then `apt-get update` and `apt-get install vim`)
 2. edit `/opt/bitnami/kafka/config/server.properties`
-   `authorizer.class.name=kafka.security.authorizer.AclAuthorizer`
-   `super.users=User:emily;User:ANONYMOUS`
+
+```
+authorizer.class.name=kafka.security.authorizer.AclAuthorizer
+super.users=User:emily;User:ANONYMOUS
+```
+
 3. Create super user
-   `kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=bleepbloop],SCRAM-SHA-512=[password=bleepbloop]' --entity-type users --entity-name emily`
+   ```bash
+   kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=bleepbloop],SCRAM-SHA-512=[password=bleepbloop]' --entity-type users --entity-name emily
+   ```
 4. give super user emily access to all topics
-   `kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --topic "\*"`
+   ```bash
+   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --topic "\*"
+   ```
 5. give super user emily access to all groups
-   `kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emilyoop --operation ALL --group \*`
+   ```bash
+   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emilyoop --operation ALL --group \*
+   ```
 6. restart
 7. Confirm on vm
-   `kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --list`
+   ```bash
+   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --list
+   ```
 8. Confirm on host
-   `kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=user -X sasl.password="bleeopbloop" -L`
+   ```bash
+   kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=user -X sasl.password="bleeopbloop" -L
+   ```
 
 ## Re-encrypting a phrase
 
 1. Change the field (prefixed with $$) to the plaintext version
-2. Edit server.java to:
+2. Edit `Server.java` to:
 
-```Settings settings = new Settings("development");
+```java
+    Settings settings = new Settings("development");
     settings.encrypt();
+    settings.decrypt();
 ```
 
 3. Replace `Settings.json` values with encrypted ones.
@@ -74,20 +90,20 @@ the database and creates a topic in the kafka cluster with environmentId.dbName.
 
 Request
 
-```
+```json
 {
-"connectionString": "mysql://user:pass@mysql:3306/dbname",
-"environmentId": "uniqueIdToUSeAsKafkaTopic"
+  "connectionString": "mysql://user:pass@mysql:3306/dbname",
+  "environmentId": "uniqueIdToUSeAsKafkaTopic"
 }
 ```
 
 Response
 
+```json
+{}
 ```
-{
-....
-}
-```
+
+---
 
 `/createQuery`
 
@@ -104,26 +120,28 @@ the topic.
 
 Request
 
-```
+```json
 {
-"connectionString": "mysql://user:pass@mysql:3306/dbname", // Will be removed
-"environmentId": "uniqueIdToUSeAsKafkaTopic", // Will be removed
-"databaseName": "dbname",
-"tableName": "tableName",
-"fieldName": "fieldName"
+  "connectionString": "mysql://user:pass@mysql:3306/dbname", // Will be removed
+  "environmentId": "uniqueIdToUSeAsKafkaTopic", // Will be removed
+  "databaseName": "dbname",
+  "tableName": "tableName",
+  "fieldName": "fieldName"
 }
 ```
 
 Response
 
-```
+```json
 {
-"name": "successfully started Flink job.",
-"environmentId" : "XXXX",
-"ApiKey": "XXXX",
-"jobId: "XXXX"
+  "name": "successfully started Flink job.",
+  "environmentId": "XXXX",
+  "ApiKey": "XXXX",
+  "jobId": "XXXX"
 }
 ```
+
+---
 
 `/checkJobStatus`
 
@@ -135,15 +153,15 @@ Returns the status of the job id passed in via the body.
 
 Request
 
-```
+```json
 { "jobId": "XXXXX" }
 ```
 
 Response
 
-```
+```json
 {
-"name": "..."
+  "name": "..."
 }
 ```
 
