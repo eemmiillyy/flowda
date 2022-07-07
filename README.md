@@ -1,30 +1,55 @@
 ## Development
 
-`docker-compose up -d` to start the services
+#### Start the services
 
-cd `Downloads/flnk-1.15.0/`
-// to add a task manager
-// if there are no resources for a job you need to manually start a task manager
-`bin/taskmanager.sh start`
-to edit flink app configuration
-`conf/flink-conf.yaml`
+```bash
+docker-compose up -d
+```
 
-`cd processingSource`
-`mvn install`
-`mvn package`
+#### Start Flink (TODO - move into docker)
 
-`cd userSource`
-`mvn install`
-`mvn package`
-`java -jar target/userSource-1.0-SNAPSHOT.jar`
-Kill java PID (kill -9 [PID]) with `ps -ef | grep java`
+```bash
+cd Downloads/flnk-1.15.0/
+cd bin
+./start-cluster.sh
+```
 
-### Kafka manual config:
+**NOTE** If there are no resources for a job you need to manually start a task manager with `bin/taskmanager.sh start`
+**NOTE** Flink config is inside `conf/flink-conf.yaml`
+
+#### Start user service
+
+```bash
+cd processingSource
+mvn install
+mvn package
+```
+
+```bash
+cd userSource
+mvn install
+mvn package
+```
+
+#### Running the user service .jar
+
+```bash
+java -jar target/userSource-1.0-SNAPSHOT.jar
+```
+
+**NOTE** To kill java processes
+
+```bash
+ps -ef | grep java
+kill -9 [PID]
+```
+
+#### Kafka manual config:
 
 1. install vim (login with root, then `apt-get update` and `apt-get install vim`)
 2. edit `/opt/bitnami/kafka/config/server.properties`
 
-```
+```yaml
 authorizer.class.name=kafka.security.authorizer.AclAuthorizer
 super.users=User:emily;User:ANONYMOUS
 ```
@@ -39,7 +64,7 @@ super.users=User:emily;User:ANONYMOUS
    ```
 5. give super user emily access to all groups
    ```bash
-   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emilyoop --operation ALL --group \*
+   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emilyoop --operation ALL --group *
    ```
 6. restart
 7. Confirm on vm
@@ -86,9 +111,9 @@ Verb: `POST`
 Response Code: `200`
 
 Creates a debezium/kafka connector for the given database. Introspects
-the database and creates a topic in the kafka cluster with environmentId.dbName...
+the database and creates a topic in the kafka cluster with `environmentId.dbName`
 
-Request
+_Request_
 
 ```json
 {
@@ -97,7 +122,7 @@ Request
 }
 ```
 
-Response
+_Response_
 
 ```json
 {}
@@ -118,7 +143,7 @@ Requires a JWT cookie.
 Returns an access token that will be the users password for the kafka ACL for
 the topic.
 
-Request
+_Request_
 
 ```json
 {
@@ -130,7 +155,7 @@ Request
 }
 ```
 
-Response
+_Response_
 
 ```json
 {
@@ -151,13 +176,13 @@ Response Code: `200`
 
 Returns the status of the job id passed in via the body.
 
-Request
+_Request_
 
 ```json
 { "jobId": "XXXXX" }
 ```
 
-Response
+_Response_
 
 ```json
 {
