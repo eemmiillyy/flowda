@@ -13,6 +13,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
+import userSource.SettingsShape.Stage.StageInstance;
 
 public class Bootstrap {
 
@@ -234,8 +235,7 @@ public class Bootstrap {
           // Generate arguments for flink job
           // TODO abstract into own Aritfact Source module
           FlinkArtifactGenerator sourceTable = new FlinkArtifactGenerator(
-            args.environmentId,
-            apiKeyForUser
+            args.environmentId
           );
           String sourceString;
           try {
@@ -276,12 +276,11 @@ public class Bootstrap {
           System.out.println("FLINK CLIENT CREATED.......");
 
           try {
+            Settings settings = new Settings("development");
+            StageInstance stage = settings.settings;
+
             flinkClient
-              .runJob(
-                validJSON,
-                client,
-                "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
-              )
+              .runJob(validJSON, client, stage.services.flink.jar)
               .onSuccess(
                 response -> {
                   System.out.println("SUCCESS.......");

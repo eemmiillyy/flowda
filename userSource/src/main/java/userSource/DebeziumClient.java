@@ -1,10 +1,13 @@
 package userSource;
 
+import java.net.URI;
+
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+import userSource.SettingsShape.Stage.StageInstance;
 
 public class DebeziumClient {
 
@@ -50,8 +53,14 @@ public class DebeziumClient {
       Thread.activeCount()
     );
 
+    Settings settings = new Settings("development");
+    StageInstance stage = settings.settings;
+    URI uri = URI.create(stage.services.debezium.servers);
+    String host = uri.getHost();
+    Integer port = uri.getPort();
+
     Future<HttpResponse<Buffer>> res = client
-      .post(8083, "localhost", "/connectors")
+      .post(port, host, "/connectors")
       .sendJsonObject(new JsonObject(arg));
     System.out.println(
       "Number of threads in debezium client after running" +

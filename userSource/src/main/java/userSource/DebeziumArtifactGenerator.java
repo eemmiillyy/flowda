@@ -2,6 +2,8 @@ package userSource;
 
 import java.net.URI;
 
+import userSource.SettingsShape.Stage.StageInstance;
+
 /**
  * Takes a connection string and returns a kafka formatted connector string
  */
@@ -23,8 +25,11 @@ public class DebeziumArtifactGenerator {
     String username = userInfo[0];
     String password = userInfo[1];
 
+    Settings settings = new Settings("development");
+    StageInstance stage = settings.settings;
+
     String formatted = String.format(
-      "{ \"name\": \"%s\", \"config\": { \"connector.class\": \"io.debezium.connector.mysql.MySqlConnector\", \"tasks.max\": \"1\", \"database.hostname\": \"%s\", \"database.port\": \"%s\", \"database.user\": \"%s\", \"database.password\": \"%s\", \"database.server.id\": \"184054\", \"database.server.name\": \"%s\", \"database.include.list\": \"%s\", \"database.history.kafka.bootstrap.servers\": \"kafka:9092\", \"database.history.kafka.topic\": \"dbhistory.%s\" } }",
+      "{ \"name\": \"%s\", \"config\": { \"connector.class\": \"io.debezium.connector.mysql.MySqlConnector\", \"tasks.max\": \"1\", \"database.hostname\": \"%s\", \"database.port\": \"%s\", \"database.user\": \"%s\", \"database.password\": \"%s\", \"database.server.id\": \"184054\", \"database.server.name\": \"%s\", \"database.include.list\": \"%s\", \"database.history.kafka.bootstrap.servers\": \"%s\", \"database.history.kafka.topic\": \"dbhistory.%s\" } }",
       connectorName,
       host,
       port,
@@ -32,6 +37,7 @@ public class DebeziumArtifactGenerator {
       password,
       dbServerName,
       dbName,
+      stage.services.kafka.bootstrap.serversInternal,
       dbName
     );
 

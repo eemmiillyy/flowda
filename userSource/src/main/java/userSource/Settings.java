@@ -37,6 +37,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 
+import userSource.SettingsShape.Stage.StageInstance;
+
 public class Settings {
 
   // TODO encrypt needs to change the key to single dollar sign
@@ -45,7 +47,7 @@ public class Settings {
 
   Pattern doubleDollarSignPattern = Pattern.compile("^\\$\\$[A-Za-z0-9]+");
   // Pattern singleDollarSignPattern = Pattern.compile("^\\$[A-Za-z0-9]+");
-  static SettingsShapeEncrypted settings;
+  public StageInstance settings;
   String password = "password"; // TODO take from .env
 
   byte[] salt;
@@ -60,78 +62,81 @@ public class Settings {
   SecretKey encryptedKey;
   Cipher cipher;
 
-  public Settings()
-    throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidParameterSpecException, InvalidKeyException, IOException {
-    this.load();
+  public Settings(String stage) {
+    try {
+      this.load(stage);
 
-    SecureRandom random = new SecureRandom();
-    byte[] salt = new byte[16];
-    random.nextBytes(salt);
-    this.salt =
-      new byte[] {
-        -83,
-        -12,
-        -36,
-        -98,
-        126,
-        21,
-        28,
-        -107,
-        126,
-        -68,
-        56,
-        -26,
-        50,
-        -12,
-        -37,
-        -50,
-      };
-    this.interationCount = 1000;
-    this.keyLength = 256;
-    this.alg = "PBKDF2WithHmacSHA1";
-    this.transformation = "AES/CBC/PKCS5Padding";
-    this.symmetricAlg = "AES";
-    this.charset = "ASCII";
+      SecureRandom random = new SecureRandom();
+      byte[] salt = new byte[16];
+      random.nextBytes(salt);
+      this.salt =
+        new byte[] {
+          -83,
+          -12,
+          -36,
+          -98,
+          126,
+          21,
+          28,
+          -107,
+          126,
+          -68,
+          56,
+          -26,
+          50,
+          -12,
+          -37,
+          -50,
+        };
+      this.interationCount = 1000;
+      this.keyLength = 256;
+      this.alg = "PBKDF2WithHmacSHA1";
+      this.transformation = "AES/CBC/PKCS5Padding";
+      this.symmetricAlg = "AES";
+      this.charset = "ASCII";
 
-    KeySpec spec = new PBEKeySpec(
-      password.toCharArray(),
-      this.salt,
-      this.interationCount,
-      this.keyLength
-    );
-    this.secretKey = SecretKeyFactory.getInstance(this.alg);
-    this.encryptedKey = secretKey.generateSecret(spec);
-    this.cipher = Cipher.getInstance(this.transformation);
-    this.cipher.init(
-        Cipher.ENCRYPT_MODE,
-        new SecretKeySpec(this.encryptedKey.getEncoded(), this.symmetricAlg)
+      KeySpec spec = new PBEKeySpec(
+        password.toCharArray(),
+        this.salt,
+        this.interationCount,
+        this.keyLength
       );
-    this.iv =
-      new byte[] {
-        -82,
-        -85,
-        -93,
-        -18,
-        25,
-        -41,
-        -16,
-        -87,
-        5,
-        98,
-        20,
-        -115,
-        -17,
-        90,
-        -3,
-        -71,
-      };
-    // this.cipher.getParameters()
-    //   .getParameterSpec(IvParameterSpec.class)
-    //   .getIV();
+      this.secretKey = SecretKeyFactory.getInstance(this.alg);
+      this.encryptedKey = secretKey.generateSecret(spec);
+      this.cipher = Cipher.getInstance(this.transformation);
+      this.cipher.init(
+          Cipher.ENCRYPT_MODE,
+          new SecretKeySpec(this.encryptedKey.getEncoded(), this.symmetricAlg)
+        );
+      this.iv =
+        new byte[] {
+          -82,
+          -85,
+          -93,
+          -18,
+          25,
+          -41,
+          -16,
+          -87,
+          5,
+          98,
+          20,
+          -115,
+          -17,
+          90,
+          -3,
+          -71,
+        };
+      // this.cipher.getParameters()
+      //   .getParameterSpec(IvParameterSpec.class)
+      //   .getIV();
 
-    /** After encryption, replace plaintext and save these and set the values to these for decyption */
-    System.out.println(Arrays.toString(this.salt));
-    System.out.println(Arrays.toString(this.iv));
+      /** After encryption, replace plaintext and save these and set the values to these for decyption */
+      System.out.println(Arrays.toString(this.salt));
+      System.out.println(Arrays.toString(this.iv));
+    } catch (Throwable e) {
+      System.out.println("COULD NOT LOAD SETTINGS FROM SETTINGS.JSON. ABORT.");
+    }
   }
 
   /**
@@ -145,7 +150,7 @@ public class Settings {
    * </code>
    * @throws IOException
    */
-  public void load() throws IOException {
+  protected void load(String stage) throws IOException {
     String fileName =
       "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/Settings.json";
     Path p = Paths.get(fileName);
@@ -153,26 +158,24 @@ public class Settings {
     JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
     reader.beginArray();
     while (reader.hasNext()) {
-      SettingsShapeEncrypted s = new Gson()
-      .fromJson(reader, SettingsShapeEncrypted.class);
+      SettingsShape s = new Gson().fromJson(reader, SettingsShape.class);
       System.out.println(s.stage.development.services.kafka.admin.user);
-      Settings.settings = s;
+      this.settings =
+        stage == "product" ? s.stage.production : s.stage.development;
     }
     reader.endArray();
   }
 
   // TODO threadsafe
   public void encrypt() {
-    JsonObject jsonObject = (JsonObject) new Gson()
-    .toJsonTree(Settings.settings);
+    JsonObject jsonObject = (JsonObject) new Gson().toJsonTree(this.settings);
     traverse(jsonObject, true);
     System.out.print(jsonObject);
   }
 
   // TODO threadsafe
   public void decrypt() {
-    JsonObject jsonObject = (JsonObject) new Gson()
-    .toJsonTree(Settings.settings);
+    JsonObject jsonObject = (JsonObject) new Gson().toJsonTree(this.settings);
     traverse(jsonObject, false);
     System.out.print(jsonObject);
   }
@@ -203,15 +206,19 @@ public class Settings {
     decryptField(obj.stage.development.$$password);</code>
    * 
    */
-  public String decryptField(String field)
-    throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException, InvalidParameterSpecException, InvalidKeyException, InvalidAlgorithmParameterException {
-    byte[] plain = Base64.getDecoder().decode(field);
-    this.cipher.init(
-        Cipher.DECRYPT_MODE,
-        new SecretKeySpec(this.encryptedKey.getEncoded(), this.symmetricAlg),
-        new IvParameterSpec(this.iv)
-      );
-    return new String(this.cipher.doFinal(plain), this.charset);
+  public String decryptField(String field) {
+    try {
+      byte[] plain = Base64.getDecoder().decode(field);
+      this.cipher.init(
+          Cipher.DECRYPT_MODE,
+          new SecretKeySpec(this.encryptedKey.getEncoded(), this.symmetricAlg),
+          new IvParameterSpec(this.iv)
+        );
+      return new String(this.cipher.doFinal(plain), this.charset);
+    } catch (Throwable e) {
+      System.out.println(e);
+      return "ERROR_DURING_DECRYPT";
+    }
   }
 
   /**

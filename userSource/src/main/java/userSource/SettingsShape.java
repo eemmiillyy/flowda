@@ -1,6 +1,6 @@
 package userSource;
 
-public class SettingsShapeEncrypted {
+public class SettingsShape {
 
   public Stage stage;
 
@@ -33,7 +33,8 @@ public class SettingsShapeEncrypted {
         public class Bootstrap {
 
           public String containerName;
-          public String servers;
+          public String serversInternal;
+          public String serversExternal;
           public String pathToBin;
         }
 
@@ -64,7 +65,8 @@ public class SettingsShapeEncrypted {
         public class Zookeeper {
 
           public String containerName;
-          public String servers;
+          public String serversExternal;
+          public String serversInternal;
         }
       }
     }

@@ -5,11 +5,12 @@
         "services": {
           "kafka": {
             "admin": {
-              "user": "emily",
+              "user": "emilyprod",
               "$$password": "ynffJ0GdrXfxZMDAmo9jRg=="
             },
             "bootstrap": {
-              "servers": "localhost:9093",
+              "serversExternal": "localhost:9093",
+              "serversInternal": "kafka:9092",
               "containerName": "pdpdataprojections_kafka_1",
               "pathToBin": "opt/bitnami/kafka/bin"
             },
@@ -36,12 +37,13 @@
         "services": {
           "kafka": {
             "admin": {
-              "user": "emily",
+              "user": "emilydev",
               "$$password": "ynffJ0GdrXfxZMDAmo9jRg=="
             },
             "bootstrap": {
               "containerName": "pdpdataprojections_kafka_1",
-              "servers": "localhost:9093",
+              "serversExternal": "localhost:9093",
+              "serversInternal": "kafka:9092",
               "pathToBin": "opt/bitnami/kafka/bin"
             },
             "sasl": {
@@ -59,7 +61,8 @@
           },
           "zookeeper": {
             "containerName": "pdpdataprojections_zookeeper_1",
-            "servers": "localhost:2181"
+            "serversExternal": "localhost:2181",
+            "serversInternal": "zookeeper:2181"
           }
         }
       }

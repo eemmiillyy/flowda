@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import userSource.SettingsShape.Stage.StageInstance;
+
 /**
  * Requires knowing the name of the docker container kafka is running in ahead of time.
  * docker exec pdpdataprojections_kafka_1 bash -c "ls -la" for individual commands
@@ -17,6 +19,13 @@ public class KafkaShellClient {
    * Assumes this service and kafka are running on the same host machine with kafka runnning in docker.
    *
    */
+  StageInstance stage;
+
+  public KafkaShellClient() {
+    Settings settings = new Settings("development");
+    this.stage = settings.settings;
+  }
+
   public void run(String command) throws IOException, InterruptedException {
     ProcessBuilder processBuilder = new ProcessBuilder();
 
@@ -50,7 +59,10 @@ public class KafkaShellClient {
   public void addACLUser(String environmentId, String password)
     throws IOException, InterruptedException {
     String command = String.format(
-      "docker exec -u root pdpdataprojections_kafka_1 bash -c \"cd opt/bitnami/kafka/bin && kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=%s],SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s\"",
+      "docker exec -u root %s bash -c \"cd %s && kafka-configs.sh --zookeeper %s --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=%s],SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s\"",
+      this.stage.services.kafka.bootstrap.containerName,
+      this.stage.services.kafka.bootstrap.pathToBin,
+      this.stage.services.zookeeper.serversInternal,
       password,
       password,
       environmentId
@@ -65,7 +77,10 @@ public class KafkaShellClient {
   public void addACLRule(String environmentId)
     throws IOException, InterruptedException {
     String command = String.format(
-      "docker exec -u root pdpdataprojections_kafka_1 bash -c \"cd opt/bitnami/kafka/bin && kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED\"",
+      "docker exec -u root %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED\"",
+      this.stage.services.kafka.bootstrap.containerName,
+      this.stage.services.kafka.bootstrap.pathToBin,
+      this.stage.services.zookeeper.serversInternal,
       environmentId,
       environmentId
     );
@@ -75,7 +90,10 @@ public class KafkaShellClient {
   public void addACLRuleConsumer(String environmentId)
     throws IOException, InterruptedException {
     String command = String.format(
-      "docker exec -u root pdpdataprojections_kafka_1 bash -c \"cd opt/bitnami/kafka/bin && kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:%s --operation ALL --group %s\"",
+      "docker exec -u root %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --group %s\"",
+      this.stage.services.kafka.bootstrap.containerName,
+      this.stage.services.kafka.bootstrap.pathToBin,
+      this.stage.services.zookeeper.serversInternal,
       environmentId,
       environmentId
     );
