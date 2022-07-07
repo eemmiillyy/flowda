@@ -1,70 +1,68 @@
-{
-  "stage": {
-    "production": {
-      "services": {
-        "kafka": {
-          "admin": {
-            "$$user": "emily",
-            "$$password": "bleepbloop"
+[
+  {
+    "stage": {
+      "production": {
+        "services": {
+          "kafka": {
+            "admin": {
+              "user": "emily",
+              "$$password": "ynffJ0GdrXfxZMDAmo9jRg=="
+            },
+            "bootstrap": {
+              "servers": "localhost:9093",
+              "containerName": "pdpdataprojections_kafka_1",
+              "pathToBin": "opt/bitnami/kafka/bin"
+            },
+            "sasl": {
+              "mechanism": "SCRAM-SHA-256",
+              "protocol": "SASL_PLAINTEXT"
+            }
           },
-          "bootstrap": {
-            "servers": "localhost:9093",
-            "containerName": "pdpdataprojections_kafka_1",
-            "pathToBin": "opt/bitnami/kafka/bin"
+          "flink": {
+            "servers": "localhost:8081",
+            "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
           },
-          "sasl": {
-            "mechanism": "SCRAM-SHA-256",
-            "protocol": "SASL_PLAINTEXT"
+          "debezium": {
+            "containerName": "pdpdataprojections_connect_1",
+            "servers": "localhost:8083"
+          },
+          "zookeeper": {
+            "containerName": "pdpdataprojections_zookeeper_1",
+            "servers": "localhost:2181"
           }
-        },
-        "flink": {
-          "servers": "localhost:8081",
-          "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
-        },
-        "debezium": {
-          "containerName": "pdpdataprojections_connect_1",
-          "servers": "localhost:8083"
-        },
-        "zookeeper": {
-          "containerName": "pdpdataprojections_zookeeper_1",
-          "servers": "localhost:2181"
         }
-      }
-    },
-    "development": {
-      "services": {
-        "kafka": {
-          "admin": {
-            "$$user": "emily",
-            "$$password": "bleepbloop"
+      },
+      "development": {
+        "services": {
+          "kafka": {
+            "admin": {
+              "user": "emily",
+              "$$password": "ynffJ0GdrXfxZMDAmo9jRg=="
+            },
+            "bootstrap": {
+              "containerName": "pdpdataprojections_kafka_1",
+              "servers": "localhost:9093",
+              "pathToBin": "opt/bitnami/kafka/bin"
+            },
+            "sasl": {
+              "mechanism": "SCRAM-SHA-256",
+              "protocol": "SASL_PLAINTEXT"
+            }
           },
-          "bootstrap": {
-            "containerName": "pdpdataprojections_kafka_1",
-            "servers": "localhost:9093",
-            "pathToBin": "opt/bitnami/kafka/bin"
+          "flink": {
+            "servers": "localhost:8081",
+            "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
           },
-          "sasl": {
-            "mechanism": "SCRAM-SHA-256",
-            "protocol": "SASL_PLAINTEXT"
+          "debezium": {
+            "containerName": "pdpdataprojections_connect_1",
+            "servers": "localhost:8083"
+          },
+          "zookeeper": {
+            "containerName": "pdpdataprojections_zookeeper_1",
+            "servers": "localhost:2181"
           }
-        },
-        "flink": {
-          "servers": "localhost:8081",
-          "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
-        },
-        "debezium": {
-          "containerName": "pdpdataprojections_connect_1",
-          "servers": "localhost:8083"
-        },
-        "zookeeper": {
-          "containerName": "pdpdataprojections_zookeeper_1",
-          "servers": "localhost:2181"
         }
       }
     }
   }
-}
-
-// Compile time check of Settings.json (impossible?)
-// $$ needs encryptions
-// $ needs decryption
+]
