@@ -20,12 +20,12 @@
             }
           },
           "flink": {
-            "servers": "localhost:8081",
+            "servers": "http://localhost:8081",
             "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
             "containerName": "pdpdataprojections_connect_1",
-            "servers": "localhost:8083"
+            "servers": "http://localhost:8083"
           },
           "zookeeper": {
             "containerName": "pdpdataprojections_zookeeper_1",
@@ -52,12 +52,12 @@
             }
           },
           "flink": {
-            "servers": "localhost:8081",
+            "servers": "http://localhost:8081",
             "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
             "containerName": "pdpdataprojections_connect_1",
-            "servers": "localhost:8083"
+            "servers": "http://localhost:8083"
           },
           "zookeeper": {
             "containerName": "pdpdataprojections_zookeeper_1",

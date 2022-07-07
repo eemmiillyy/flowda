@@ -25,6 +25,8 @@ mvn install
 mvn package
 ```
 
+**NOTE** We musth manually upload the packaged .jar file from these steps to flink via the UI and retrieve it's job id. After that `Settings.json` jar file path needs to be updated.
+
 ```bash
 cd userSource
 mvn install
@@ -46,34 +48,33 @@ kill -9 [PID]
 
 #### Kafka manual config:
 
-1. install vim (login with root, then `apt-get update` and `apt-get install vim`)
-2. edit `/opt/bitnami/kafka/config/server.properties`
+1. Open a bash shell in the docker container
 
-```yaml
-authorizer.class.name=kafka.security.authorizer.AclAuthorizer
-super.users=User:emily;User:ANONYMOUS
+```bash
+docker exec -u root -it pdpdataprojections_kafka_1 bash
 ```
 
-3. Create super user
+Inside `/opt/bitnami/kafka/bin`
+
+2. Create super user
    ```bash
    kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=bleepbloop],SCRAM-SHA-512=[password=bleepbloop]' --entity-type users --entity-name emily
    ```
-4. give super user emily access to all topics
+3. give super user emily access to all topics
    ```bash
    kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --topic "\*"
    ```
-5. give super user emily access to all groups
+4. give super user emily access to all groups
    ```bash
-   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emilyoop --operation ALL --group *
+   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --group *
    ```
-6. restart
-7. Confirm on vm
+5. Confirm on vm
    ```bash
    kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --list
    ```
-8. Confirm on host
+6. Confirm on host
    ```bash
-   kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=user -X sasl.password="bleeopbloop" -L
+   kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password="bleepbloop" -L
    ```
 
 ## Re-encrypting a phrase
