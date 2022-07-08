@@ -25,7 +25,7 @@ mvn install
 mvn package
 ```
 
-**NOTE** We musth manually upload the packaged .jar file from these steps to flink via the UI and retrieve it's job id. After that `Settings.json` jar file path needs to be updated.
+**NOTE** We must manually upload the packaged .jar file from these steps to flink via the UI and retrieve it's job id. After that `Settings.json` jar file path needs to be updated.
 
 ```bash
 cd userSource
@@ -79,7 +79,7 @@ Inside `/opt/bitnami/kafka/bin`
 
 ## Re-encrypting a phrase
 
-1. Change the field (prefixed with $$) to the plaintext version
+1. Change the field (prefixed with `$$`) to the plaintext version
 2. Edit `Server.java` to:
 
 ```java
@@ -95,6 +95,7 @@ Inside `/opt/bitnami/kafka/bin`
 
 ## Test
 
+Tests use JUnit and Mockito. There are a combination of unit tests and integration tests. Each test suite for each domain should live beside the module they are testing.
 `mvn test` to check the services are healthy
 
 Run a single test

@@ -51,7 +51,11 @@ public class Settings {
 
   public Settings(String stage) {
     try {
-      this.load(stage);
+      this.settings =
+        this.load(
+            stage,
+            "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/Settings/Settings.json"
+          );
 
       String saltBase64Encoded = "yGfJMijTbVzzx1Ywb3d2dd=="; // TODO take from .env
       this.salt = Base64.getDecoder().decode(saltBase64Encoded);
@@ -89,32 +93,34 @@ public class Settings {
    * Load file into memory. Automatically called in contsructor.
    * @throws IOException
    */
-  protected void load(String stage) throws IOException {
-    String fileName =
-      "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/Settings/Settings.json";
+  public SettingsShape.Stage.StageInstance load(String stage, String fileName)
+    throws IOException {
     Path p = Paths.get(fileName);
     InputStream inputStream = Files.newInputStream(p);
     JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
+
     reader.beginArray();
     while (reader.hasNext()) {
       SettingsShape s = new Gson().fromJson(reader, SettingsShape.class);
       System.out.println(s.stage.development.services.kafka.admin.user);
-      this.settings =
-        stage == "product" ? s.stage.production : s.stage.development;
+      return stage == "product" ? s.stage.production : s.stage.development;
     }
     reader.endArray();
+    throw new IOException("Something went wrong");
   }
 
-  public void encrypt() {
+  public JsonObject encrypt() {
     JsonObject jsonObject = (JsonObject) new Gson().toJsonTree(this.settings);
     traverse(jsonObject, true);
     System.out.print(jsonObject);
+    return jsonObject;
   }
 
-  public void decrypt() {
+  public JsonObject decrypt() {
     JsonObject jsonObject = (JsonObject) new Gson().toJsonTree(this.settings);
     traverse(jsonObject, false);
     System.out.print(jsonObject);
+    return jsonObject;
   }
 
   public String encryptField(JsonElement field) throws Exception {

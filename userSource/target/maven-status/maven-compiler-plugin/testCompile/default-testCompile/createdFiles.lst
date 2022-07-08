@@ -1,0 +1,6 @@
+UtilsTest.class
+DebeziumTest.class
+KafkaTest.class
+SettingsTest.class
+BoostrapTest.class
+FlinkTest.class

@@ -1,0 +1,26 @@
+[
+  {
+    "stage": {
+      "production": {
+        "services": {
+          "kafka": {
+            "admin": {
+              "user": "production",
+              "$$password": "tester"
+            }
+          }
+        }
+      },
+      "development": {
+        "services": {
+          "kafka": {
+            "admin": {
+              "user": "development",
+              "$$password": "tester"
+            }
+          }
+        }
+      }
+    }
+  }
+]

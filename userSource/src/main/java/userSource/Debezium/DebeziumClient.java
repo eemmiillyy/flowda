@@ -63,10 +63,6 @@ public class DebeziumClient {
     Future<HttpResponse<Buffer>> res = client
       .post(port, host, "/connectors")
       .sendJsonObject(new JsonObject(arg));
-    System.out.println(
-      "Number of threads in debezium client after running" +
-      Thread.activeCount()
-    );
 
     return res;
   }
