@@ -57,6 +57,14 @@
     <version>4.6.1</version>
     <scope>test</scope>
 </dependency>
+<!-- https://mvnrepository.com/artifact/io.vertx/vertx-junit5 -->
+<dependency>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-junit5</artifactId>
+    <version>4.3.2</version>
+    <scope>test</scope>
+</dependency>
+
     <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-api</artifactId>

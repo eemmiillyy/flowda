@@ -15,6 +15,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import userSource.Debezium.DebeziumArtifactGenerator;
 import userSource.Debezium.DebeziumClient;
+import userSource.Debezium.DebeziumResponseShape;
 import userSource.Flink.FlinkArtifactGenerator;
 import userSource.Flink.FlinkClient;
 import userSource.Kafka.KafkaShellClient;
@@ -24,6 +25,13 @@ import userSource.Utils.ApiKey;
 import userSource.Utils.ArgumentValidator;
 
 public class Bootstrap {
+
+  String stage;
+  public Settings settings;
+
+  public Bootstrap(String stage) {
+    this.stage = stage;
+  }
 
   public static WebClient client = WebClient.create(Vertx.vertx());
 
@@ -93,16 +101,15 @@ public class Bootstrap {
       .route("/createConnection")
       .handler(
         context -> {
-          System.out.println(
-            "Number of threads in createConnection" + Thread.activeCount()
-          );
           io.vertx.ext.web.RequestBody body = null;
+          System.out.println("HERRRREE.......");
           try {
             body = context.body();
           } catch (Throwable e) {
             context.json(new JsonObject().put("message", e).put("code", 4000));
           }
 
+          System.out.println("HERRRREE.......");
           // Parse arguments into JSON for easier handling in resolver
           CreateConnectionInput args = g.fromJson(
             body.asJsonObject().toString(),
@@ -123,6 +130,7 @@ public class Bootstrap {
               new JsonObject().put("message", message).put("code", 4001)
             );
           }
+          System.out.println("HERRRR 2EE.......");
 
           // Validate args do not pass length or contain bad characters
           try {
@@ -132,25 +140,37 @@ public class Bootstrap {
             context.json(new JsonObject().put("message", e).put("code", 4002));
           }
 
+          System.out.println("HERRRREE 3.......");
+
           // Format connection string for debezium
+          // TODO validate the connection string so this never throws
           DebeziumArtifactGenerator debezium = new DebeziumArtifactGenerator();
           String formatted = debezium.connectionString(
             args.connectionString,
             args.environmentId
           );
 
+          System.out.println("HERRRREE 4.......");
+
           // Create the kafka connector with REST Client
           try {
-            DebeziumClient debeziumClient = new DebeziumClient();
+            DebeziumClient debeziumClient = new DebeziumClient(settings);
             Future<HttpResponse<Buffer>> res = debeziumClient.createConnector(
               formatted,
               client
             );
-
             res.onSuccess(
               result -> {
                 context.json(
-                  new JsonObject().put("data", result.bodyAsString())
+                  new JsonObject()
+                  .put(
+                      // TODO return a bad status code for the user instead of 200
+                      "data",
+                      result.bodyAsJson(DebeziumResponseShape.class).name !=
+                        null
+                        ? result.bodyAsJson(DebeziumResponseShape.class).name
+                        : result.bodyAsJson(DebeziumResponseShape.class).message
+                    )
                 );
               }
             );
@@ -165,9 +185,6 @@ public class Bootstrap {
       .route("/createQuery")
       .handler(
         context -> {
-          System.out.println(
-            "Number of threads in createQuery" + Thread.activeCount()
-          );
           // Get the query parameter "name"
           io.vertx.ext.web.RequestBody body = null;
           try {
@@ -284,7 +301,7 @@ public class Bootstrap {
           System.out.println("FLINK CLIENT CREATED.......");
 
           try {
-            Settings settings = new Settings("development");
+            this.settings = new Settings(this.stage);
             StageInstance stage = settings.settings;
 
             flinkClient
@@ -387,7 +404,8 @@ public class Bootstrap {
       .onSuccess(
         server ->
           System.out.println(
-            "HTTP server started on port " + server.actualPort()
+            "HTTP server started on port " +
+            this.settings.settings.services.debezium.servers
           )
       );
   }

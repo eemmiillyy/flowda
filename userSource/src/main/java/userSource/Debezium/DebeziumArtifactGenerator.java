@@ -15,6 +15,9 @@ public class DebeziumArtifactGenerator {
     String environmentId
   ) {
     // URI uri = URI.create("mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory");
+    System.out.println(connectionString);
+
+    System.out.println(environmentId);
     URI uri = URI.create(connectionString);
     String dbServerName = environmentId;
     String connectorName = dbServerName + "-connector";

@@ -8,6 +8,10 @@
               "user": "production",
               "$$password": "tester"
             }
+          },
+          "debezium": {
+            "containerName": "pdpdataprojections_connect_1",
+            "servers": "http://localhost:9000"
           }
         }
       },
@@ -18,6 +22,10 @@
               "user": "development",
               "$$password": "tester"
             }
+          },
+          "debezium": {
+            "containerName": "pdpdataprojections_connect_1",
+            "servers": "http://localhost:9000"
           }
         }
       }

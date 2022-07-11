@@ -16,7 +16,6 @@ import userSource.Settings.SettingsShape.Stage.StageInstance;
 
 public class SettingsTest {
 
-  // Check there are no thread errors
   Settings spy;
   String stage = "development";
   String plaintextPassword = "tester";

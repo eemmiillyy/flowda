@@ -1,6 +1,7 @@
 package userSource.Utils;
 
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
 
@@ -23,6 +24,7 @@ public class ApiKey {
     System.out.println(cryptoRandom.getClass().getCanonicalName());
 
     cryptoRandom.nextBytes(randomBytes);
+    System.out.println(Arrays.toString(randomBytes));
 
     return new String(Base64.getEncoder().encode(randomBytes));
   }

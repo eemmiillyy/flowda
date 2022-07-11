@@ -31,4 +31,5 @@ userSource/Settings/SettingsShape$Stage$StageInstance$Services$Debezium.class
 userSource/Bootstrap$CreateConnectionInput.class
 userSource/Settings/SettingsShape$Stage$StageInstance$Services$Kafka.class
 userSource/Settings/SettingsShape$Stage$StageInstance$Services$Zookeeper.class
+userSource/Debezium/DebeziumResponseShape.class
 userSource/Flink/FlinkClient.class

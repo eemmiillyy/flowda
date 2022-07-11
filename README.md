@@ -192,6 +192,8 @@ _Response_
 }
 ```
 
+## Error Codes
+
 ## Debug
 
 PLANETSCALE MONITORING
