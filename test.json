@@ -1,10 +1,21 @@
 {
-  "stage": {
-    "production": { "user": "emily", "$$password": "ynffJ0GdrXfxZMDAmo9jRg==" },
-    "development": {
-      "user": "second",
-      "$$password": "jxfDmTcSHfcqaTjyhlMV0w=="
-    },
-    "test": { "user": "second", "$$password": "aTymmRUYFpnBTDalEjUD8g==" }
+  "payload": {
+    "source": { "table": "tester", "name": "tester" },
+    "tableChanges": [
+      {
+        "type": "CREATE",
+        "id": "tester",
+        "table": {
+          "columns": [
+            {
+              "name": "tester",
+              "typeName": "INT",
+              "value": "CREATE TABLE `products_on_hand`"
+            }
+          ]
+        }
+      }
+    ],
+    "databaseName": "tester"
   }
 }

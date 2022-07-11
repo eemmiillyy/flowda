@@ -102,8 +102,10 @@ public class Settings {
     reader.beginArray();
     while (reader.hasNext()) {
       SettingsShape s = new Gson().fromJson(reader, SettingsShape.class);
-      System.out.println(s.stage.development.services.kafka.admin.user);
-      return stage == "product" ? s.stage.production : s.stage.development;
+      System.out.println(stage + " from settings");
+      return stage == "production"
+        ? s.stage.production
+        : stage == "test" ? s.stage.test : s.stage.development;
     }
     reader.endArray();
     throw new IOException("Something went wrong");

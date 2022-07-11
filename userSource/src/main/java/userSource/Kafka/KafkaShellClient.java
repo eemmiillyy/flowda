@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import userSource.Settings.Settings;
-import userSource.Settings.SettingsShape.Stage.StageInstance;
 
 /**
  * Requires knowing the name of the docker container kafka is running in ahead of time.
@@ -20,11 +19,10 @@ public class KafkaShellClient {
    * Assumes this service and kafka are running on the same host machine with kafka runnning in docker.
    *
    */
-  StageInstance stage;
+  Settings settings;
 
-  public KafkaShellClient() {
-    Settings settings = new Settings("development");
-    this.stage = settings.settings;
+  public KafkaShellClient(Settings settings) {
+    this.settings = settings;
   }
 
   public void run(String command) throws IOException, InterruptedException {
@@ -57,47 +55,41 @@ public class KafkaShellClient {
   }
 
   // TODO dynamically get the name of the container and the path to the kafka bin
-  public void addACLUser(String environmentId, String password)
-    throws IOException, InterruptedException {
-    String command = String.format(
+  public String createACLUser(String environmentId, String password) {
+    return String.format(
       "docker exec -u root %s bash -c \"cd %s && kafka-configs.sh --zookeeper %s --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=%s],SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s\"",
-      this.stage.services.kafka.bootstrap.containerName,
-      this.stage.services.kafka.bootstrap.pathToBin,
-      this.stage.services.zookeeper.serversInternal,
+      this.settings.settings.services.kafka.bootstrap.containerName,
+      this.settings.settings.services.kafka.bootstrap.pathToBin,
+      this.settings.settings.services.zookeeper.serversInternal,
       password,
       password,
       environmentId
     );
-    run(command);
   }
 
   /**
    * Add ACL rule for given user and topic. Creates access for all operations on all topics with this prefix
    *
    */
-  public void addACLRule(String environmentId)
-    throws IOException, InterruptedException {
-    String command = String.format(
+  public String createACLRule(String environmentId) {
+    return String.format(
       "docker exec -u root %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED\"",
-      this.stage.services.kafka.bootstrap.containerName,
-      this.stage.services.kafka.bootstrap.pathToBin,
-      this.stage.services.zookeeper.serversInternal,
+      this.settings.settings.services.kafka.bootstrap.containerName,
+      this.settings.settings.services.kafka.bootstrap.pathToBin,
+      this.settings.settings.services.zookeeper.serversInternal,
       environmentId,
       environmentId
     );
-    run(command);
   }
 
-  public void addACLRuleConsumer(String environmentId)
-    throws IOException, InterruptedException {
-    String command = String.format(
+  public String createACLRuleConsumer(String environmentId) {
+    return String.format(
       "docker exec -u root %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --group %s\"",
-      this.stage.services.kafka.bootstrap.containerName,
-      this.stage.services.kafka.bootstrap.pathToBin,
-      this.stage.services.zookeeper.serversInternal,
+      this.settings.settings.services.kafka.bootstrap.containerName,
+      this.settings.settings.services.kafka.bootstrap.pathToBin,
+      this.settings.settings.services.zookeeper.serversInternal,
       environmentId,
       environmentId
     );
-    run(command);
   }
 }

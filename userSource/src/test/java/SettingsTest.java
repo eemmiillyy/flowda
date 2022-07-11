@@ -5,6 +5,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.google.gson.Gson;
@@ -23,22 +25,23 @@ public class SettingsTest {
   String pathToFixture =
     "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/test/resources/Settings.json";
 
+  @BeforeEach
   public void setup() throws IOException {
     Settings settings = new Settings(stage);
     this.spy = Mockito.spy(settings);
     spy.settings = spy.load(stage, pathToFixture);
   }
 
+  @Test
   public void testICanEncryptTheFile() throws IOException {
-    setup();
     JsonObject settings = spy.encrypt();
     StageInstance s = new Gson()
     .fromJson(settings, SettingsShape.Stage.StageInstance.class);
     assertEquals(s.services.kafka.admin.$$password, encryptedPassword);
   }
 
+  @Test
   public void testICanDecryptTheFile() throws IOException {
-    setup();
     JsonObject settings = spy.encrypt();
     StageInstance s = new Gson()
     .fromJson(settings, SettingsShape.Stage.StageInstance.class);
@@ -53,14 +56,14 @@ public class SettingsTest {
     );
   }
 
+  @Test
   public void testICanEncryptASingleField() throws Exception {
-    setup();
     String password = spy.settings.services.kafka.admin.$$password;
     assertEquals(spy.encryptField(password), encryptedPassword);
   }
 
+  @Test
   public void testICanDecryptASingleField() throws Exception {
-    setup();
     String password = spy.settings.services.kafka.admin.$$password;
     assertEquals(
       spy.decryptField(spy.encryptField(password)),
@@ -68,6 +71,7 @@ public class SettingsTest {
     );
   }
 
+  @Test
   public void testEncryptionAndDecryptAreThreadSafe()
     throws InterruptedException, IOException {
     Settings set = new Settings(stage);

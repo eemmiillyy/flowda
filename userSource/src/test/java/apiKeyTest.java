@@ -2,10 +2,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.security.GeneralSecurityException;
 
+import org.junit.jupiter.api.Test;
+
 import userSource.Utils.ApiKey;
 
-public class UtilsTest {
+public class apiKeyTest {
 
+  @Test
   public void testICanGenerateAnAPIKey() throws GeneralSecurityException {
     ApiKey apikeyFactory = new ApiKey();
     String apiKey = apikeyFactory.create();

@@ -8,6 +8,7 @@ public class SettingsShape {
 
     public StageInstance production;
     public StageInstance development;
+    public StageInstance test;
 
     public class StageInstance {
 

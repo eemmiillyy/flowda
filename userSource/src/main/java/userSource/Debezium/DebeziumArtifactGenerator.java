@@ -10,6 +10,12 @@ import userSource.Settings.SettingsShape.Stage.StageInstance;
  */
 public class DebeziumArtifactGenerator {
 
+  Settings settings;
+
+  public DebeziumArtifactGenerator(Settings settings) {
+    this.settings = settings;
+  }
+
   public String connectionString(
     String connectionString,
     String environmentId
@@ -29,8 +35,7 @@ public class DebeziumArtifactGenerator {
     String username = userInfo[0];
     String password = userInfo[1];
 
-    Settings settings = new Settings("development");
-    StageInstance stage = settings.settings;
+    StageInstance stage = this.settings.settings;
 
     String formatted = String.format(
       "{ \"name\": \"%s\", \"config\": { \"connector.class\": \"io.debezium.connector.mysql.MySqlConnector\", \"tasks.max\": \"1\", \"database.hostname\": \"%s\", \"database.port\": \"%s\", \"database.user\": \"%s\", \"database.password\": \"%s\", \"database.server.id\": \"184054\", \"database.server.name\": \"%s\", \"database.include.list\": \"%s\", \"database.history.kafka.bootstrap.servers\": \"%s\", \"database.history.kafka.topic\": \"dbhistory.%s\" } }",

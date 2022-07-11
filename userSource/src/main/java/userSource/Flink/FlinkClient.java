@@ -8,9 +8,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import userSource.Settings.Settings;
-import userSource.Settings.SettingsShape.Stage.StageInstance;
 
 public class FlinkClient {
+
+  Settings settings;
+
+  public FlinkClient(Settings settings) {
+    this.settings = settings;
+  }
 
   public Future<HttpResponse<Buffer>> runJob(
     String body,
@@ -18,11 +23,14 @@ public class FlinkClient {
     String url
   )
     throws Throwable {
-    Settings settings = new Settings("development");
-    StageInstance stage = settings.settings;
-    URI uri = URI.create(stage.services.flink.servers);
+    System.out.println(this.settings.settings.services.flink.servers);
+    URI uri = URI.create(this.settings.settings.services.flink.servers);
     String host = uri.getHost();
     Integer port = uri.getPort();
+    System.out.println(host);
+
+    System.out.println(port);
+    System.out.println(url);
 
     if (body.length() > 0) {
       Future<HttpResponse<Buffer>> res = client

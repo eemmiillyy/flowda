@@ -228,4 +228,4 @@ kafka-topics.sh --create --bootstrap-server kafka:9092 --topic newtopicbanned --
 
 READ TOPIC FROM DEFAULT USER
 
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=emily -X sasl.password=bleepbloop -L
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -L

@@ -16,7 +16,6 @@ import com.google.gson.JsonSyntaxException;
 
 import userSource.Kafka.KafkaClient;
 import userSource.Settings.Settings;
-import userSource.Settings.SettingsShape.Stage.StageInstance;
 
 /**
  * 
@@ -85,26 +84,19 @@ public class FlinkArtifactGenerator {
     Payload payload;
   }
 
-  KafkaConsumer<String, String> client;
-  private String environmentId;
   private String loginModule;
-  StageInstance stage;
+  Settings settings;
 
-  public FlinkArtifactGenerator(String environmentId) {
-    Settings settings = new Settings("development");
-    this.stage = settings.settings;
-    this.environmentId = environmentId;
-    KafkaClient kafka = new KafkaClient(
-      this.stage.services.kafka.admin.user,
-      settings.decryptField(this.stage.services.kafka.admin.$$password)
-    );
-    this.client = kafka.create(this.stage.services.kafka.admin.user);
+  public FlinkArtifactGenerator(Settings settings) {
+    this.settings = settings;
 
     this.loginModule =
       String.format(
         " 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=%s password=%s;', ",
-        this.stage.services.kafka.admin.user,
-        settings.decryptField(this.stage.services.kafka.admin.$$password)
+        this.settings.settings.services.kafka.admin.user,
+        settings.decryptField(
+          this.settings.settings.services.kafka.admin.$$password
+        )
       );
   }
 
@@ -120,7 +112,8 @@ public class FlinkArtifactGenerator {
   public String createSinkTable(
     String databaseName,
     String tableName,
-    String fieldName
+    String fieldName,
+    String environmentId
   ) {
     return (
       "CREATE TABLE " +
@@ -130,7 +123,7 @@ public class FlinkArtifactGenerator {
       ") WITH (" +
       "'connector' = 'kafka'," +
       "'topic' = '" +
-      this.environmentId +
+      environmentId +
       "." +
       databaseName +
       "." +
@@ -138,13 +131,13 @@ public class FlinkArtifactGenerator {
       "_output" +
       "'," +
       "'properties.bootstrap.servers' = '" +
-      stage.services.kafka.bootstrap.serversExternal +
+      this.settings.settings.services.kafka.bootstrap.serversExternal +
       "'," +
       " 'properties.sasl.mechanism' = '" +
-      stage.services.kafka.sasl.mechanism +
+      this.settings.settings.services.kafka.sasl.mechanism +
       "', " +
       " 'properties.security.protocol' = '" +
-      stage.services.kafka.sasl.protocol +
+      this.settings.settings.services.kafka.sasl.protocol +
       "', " +
       this.loginModule +
       "'format' = 'debezium-json'" +
@@ -160,15 +153,38 @@ public class FlinkArtifactGenerator {
    * @return The string necessary for a Flink Kafka source connector to be started.
    * @throws Throwable
    */
-  public String createSourceTable(String databaseName, String tableName)
+  public KafkaConsumer<String, String> createKafkaConsumer() {
+    KafkaClient kafka = new KafkaClient(
+      this.settings.settings.services.kafka.admin.user,
+      settings.decryptField(
+        this.settings.settings.services.kafka.admin.$$password
+      ),
+      this.settings
+    );
+    KafkaConsumer<String, String> client = kafka.create(
+      this.settings.settings.services.kafka.admin.user
+    );
+    return client;
+  }
+
+  public String createSourceTable(
+    String databaseName,
+    String tableName,
+    String environmentId
+  )
     throws Throwable {
+    KafkaConsumer<String, String> client = createKafkaConsumer();
     // Check if topic exists
     Map<String, List<PartitionInfo>> topicMap = client.listTopics();
-    if (!(topicMap.containsKey(this.environmentId))) {
+    System.out.println(topicMap.toString());
+    if (!(topicMap.containsKey(environmentId))) {
       throw new Exception("environmentId (topic name) is wrong");
     }
+    System.out.println("SUBSCRIBING");
+
     // Subscribe to schema topic
-    client.subscribe(Arrays.asList(this.environmentId));
+    client.subscribe(Arrays.asList(environmentId));
+    System.out.println("SUBSCRIBTT");
 
     boolean matched = false;
 
@@ -178,7 +194,7 @@ public class FlinkArtifactGenerator {
 
     try {
       ConsumerRecords<String, String> records = client.poll(1000);
-
+      System.out.println(records.toString());
       for (ConsumerRecord<String, String> record : records) {
         if (record.value().contains(toMatch)) {
           output = record.value();
@@ -193,6 +209,7 @@ public class FlinkArtifactGenerator {
     } finally {
       client.close();
     }
+
     String sql = output;
 
     Gson g = new Gson();
@@ -204,7 +221,7 @@ public class FlinkArtifactGenerator {
     try {
       DataObject obj = g.fromJson(sql, DataObject.class);
 
-      if (Objects.equals(obj.payload.source.name, this.environmentId)) {
+      if (Objects.equals(obj.payload.source.name, environmentId)) {
         if (Objects.equals(obj.payload.databaseName, databaseName)) {
           if (Objects.equals(obj.payload.source.table, tableName)) {
             if (obj.payload.tableChanges.length > 0) {
@@ -234,29 +251,30 @@ public class FlinkArtifactGenerator {
         ") WITH (" +
         " 'connector' = 'kafka'," +
         "'topic'     = '" +
-        this.environmentId +
+        environmentId +
         "." +
         databaseName +
         "." +
         tableName +
         "'," +
         " 'properties.bootstrap.servers' = '" +
-        stage.services.kafka.bootstrap.serversExternal +
+        this.settings.settings.services.kafka.bootstrap.serversExternal +
         "'," +
         " 'properties.group.id' = '" +
-        this.environmentId +
+        environmentId +
         "'," +
         " 'properties.sasl.mechanism' = '" +
-        stage.services.kafka.sasl.mechanism +
+        this.settings.settings.services.kafka.sasl.mechanism +
         "', " +
         " 'properties.security.protocol' = '" +
-        stage.services.kafka.sasl.protocol +
+        this.settings.settings.services.kafka.sasl.protocol +
         "', " +
         this.loginModule +
         " 'debezium-json.schema-include' = 'true', " +
         " 'scan.startup.mode' = 'earliest-offset'," +
         " 'format'    = 'debezium-json'" +
         ")";
+      System.out.println(output);
       return output;
     } catch (JsonSyntaxException e) {
       // THROW error?

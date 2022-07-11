@@ -15,6 +15,7 @@ public class DebeziumClient {
   Settings settings;
 
   public DebeziumClient(Settings settings) {
+    System.out.println(settings.settings.services);
     this.settings = settings;
   }
 
@@ -27,7 +28,7 @@ public class DebeziumClient {
     URI uri = URI.create(stage.services.debezium.servers);
     String host = uri.getHost();
     Integer port = uri.getPort();
-
+    System.out.println(uri.toString());
     Future<HttpResponse<Buffer>> res = client
       .post(port, host, "/connectors")
       .sendJsonObject(new JsonObject(arg));

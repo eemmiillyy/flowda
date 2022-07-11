@@ -5,12 +5,9 @@ import java.util.ArrayList;
 
 import com.google.gson.Gson;
 
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import userSource.Debezium.DebeziumArtifactGenerator;
@@ -18,52 +15,34 @@ import userSource.Debezium.DebeziumClient;
 import userSource.Debezium.DebeziumResponseShape;
 import userSource.Flink.FlinkArtifactGenerator;
 import userSource.Flink.FlinkClient;
+import userSource.Flink.FlinkResponseShape;
 import userSource.Kafka.KafkaShellClient;
 import userSource.Settings.Settings;
-import userSource.Settings.SettingsShape.Stage.StageInstance;
 import userSource.Utils.ApiKey;
 import userSource.Utils.ArgumentValidator;
 
 public class Bootstrap {
 
-  String stage;
   public Settings settings;
-
-  public Bootstrap(String stage) {
-    this.stage = stage;
-  }
-
+  public KafkaShellClient kafkaShellClient;
+  public FlinkArtifactGenerator flinkArtifactGenerator;
+  public DebeziumArtifactGenerator debeziumArtifactGenerator;
+  public FlinkClient flinkClient;
+  public DebeziumClient debeziumClient;
   public static WebClient client = WebClient.create(Vertx.vertx());
-
-  public class ClientError {
-
-    Number code;
-    String Message;
-  }
-
-  public class CreateConnectionInput {
-
-    public String connectionString;
-    public String environmentId;
-  }
-
-  public class CheckJobStatusInput {
-
-    public String jobId;
-  }
-
-  public class CreateQueryInput {
-
-    public String connectionString; // TODO Switch this to JWT in header
-    public String environmentId; // or dbServerName, encode in JWT
-    public String databaseName;
-    public String tableName;
-    public String fieldName;
-  }
-
   io.vertx.core.http.HttpServer server;
   Vertx vertexInstance;
   Gson g;
+
+  public Bootstrap(String stage) {
+    this.settings = new Settings(stage);
+    this.kafkaShellClient = new KafkaShellClient(this.settings);
+    this.flinkArtifactGenerator = new FlinkArtifactGenerator(this.settings);
+    this.debeziumArtifactGenerator =
+      new DebeziumArtifactGenerator(this.settings);
+    this.flinkClient = new FlinkClient(this.settings);
+    this.debeziumClient = new DebeziumClient(this.settings);
+  }
 
   public class AllFieldsPresentOutput {
 
@@ -102,22 +81,21 @@ public class Bootstrap {
       .handler(
         context -> {
           io.vertx.ext.web.RequestBody body = null;
-          System.out.println("HERRRREE.......");
           try {
             body = context.body();
           } catch (Throwable e) {
             context.json(new JsonObject().put("message", e).put("code", 4000));
           }
 
-          System.out.println("HERRRREE.......");
           // Parse arguments into JSON for easier handling in resolver
           CreateConnectionInput args = g.fromJson(
             body.asJsonObject().toString(),
             CreateConnectionInput.class
           );
-
+          System.out.println(args);
           // Check args are present
           // TODO return the error status code
+          // TODO this only accepts {} right now, make sure now JSON object is also accepted
           Field[] fields = args.getClass().getFields();
           if (allFieldsPresent(fields, args).status == false) {
             String message =
@@ -126,11 +104,13 @@ public class Bootstrap {
                 allFieldsPresent(fields, args).missingFieldNames
               ) +
               " are missing.";
+            System.out.println(message);
+
             context.json(
               new JsonObject().put("message", message).put("code", 4001)
             );
+            return;
           }
-          System.out.println("HERRRR 2EE.......");
 
           // Validate args do not pass length or contain bad characters
           try {
@@ -140,41 +120,39 @@ public class Bootstrap {
             context.json(new JsonObject().put("message", e).put("code", 4002));
           }
 
-          System.out.println("HERRRREE 3.......");
-
           // Format connection string for debezium
           // TODO validate the connection string so this never throws
-          DebeziumArtifactGenerator debezium = new DebeziumArtifactGenerator();
-          String formatted = debezium.connectionString(
+
+          String formatted = debeziumArtifactGenerator.connectionString(
             args.connectionString,
             args.environmentId
           );
 
-          System.out.println("HERRRREE 4.......");
-
           // Create the kafka connector with REST Client
           try {
-            DebeziumClient debeziumClient = new DebeziumClient(settings);
-            Future<HttpResponse<Buffer>> res = debeziumClient.createConnector(
-              formatted,
-              client
-            );
-            res.onSuccess(
-              result -> {
-                context.json(
-                  new JsonObject()
-                  .put(
-                      // TODO return a bad status code for the user instead of 200
-                      "data",
-                      result.bodyAsJson(DebeziumResponseShape.class).name !=
-                        null
-                        ? result.bodyAsJson(DebeziumResponseShape.class).name
-                        : result.bodyAsJson(DebeziumResponseShape.class).message
-                    )
-                );
-              }
-            );
+            this.debeziumClient.createConnector(formatted, client)
+              .onSuccess(
+                result -> {
+                  System.out.println(result.bodyAsString());
+                  System.out.println(
+                    result.bodyAsJson(DebeziumResponseShape.class)
+                  );
+                  context.json(
+                    new JsonObject()
+                    .put(
+                        // TODO return a bad status code for the user instead of 200
+                        "data",
+                        result.bodyAsJson(DebeziumResponseShape.class).name !=
+                          null
+                          ? result.bodyAsJson(DebeziumResponseShape.class).name
+                          : result.bodyAsJson(DebeziumResponseShape.class)
+                            .message
+                      )
+                  );
+                }
+              );
           } catch (Throwable e) {
+            System.out.println(e.toString());
             context.json(new JsonObject().put("message", e).put("code", 4002));
           }
         }
@@ -191,14 +169,13 @@ public class Bootstrap {
             body = context.body();
           } catch (Throwable e) {
             context.json(new JsonObject().put("message", e).put("code", 4000));
+            return;
           }
-
           // Parse arguments into JSON for easier handling in resolver
           CreateQueryInput args = g.fromJson(
             body.asJsonObject().toString(),
             CreateQueryInput.class
           );
-
           // Check args are present
           // TODO return the error status code
           Field[] fields = args.getClass().getFields();
@@ -209,9 +186,11 @@ public class Bootstrap {
                 allFieldsPresent(fields, args).missingFieldNames
               ) +
               " are missing.";
+            System.out.println(message);
             context.json(
               new JsonObject().put("message", message).put("code", 4001)
             );
+            return;
           }
 
           // TODO authorisation with JWT to make sure they control the db.
@@ -222,32 +201,39 @@ public class Bootstrap {
           String apiKeyForUser;
           try {
             apiKeyForUser = apiKeyFactory.create();
-            System.out.println(apiKeyForUser);
           } catch (Exception e) {
             context.json(new JsonObject().put("error", e.getMessage()));
             return;
           }
 
           // Create kafka user for environmentId/accessToken
-          KafkaShellClient kafkaShellClient = new KafkaShellClient();
           try {
-            kafkaShellClient.addACLUser(args.environmentId, apiKeyForUser);
+            String rule = kafkaShellClient.createACLUser(
+              args.environmentId,
+              apiKeyForUser
+            );
+            kafkaShellClient.run(rule);
           } catch (Exception e) {
             context.json(new JsonObject().put("error", e.getMessage()));
             return;
           }
-
           // Group
           try {
-            kafkaShellClient.addACLRuleConsumer(args.environmentId); // Create kafka ACL for environmentId
+            String rule = kafkaShellClient.createACLRuleConsumer(
+              args.environmentId
+            ); // Create kafka ACL for environmentId
+            kafkaShellClient.run(rule);
           } catch (Exception e) {
+            System.out.println(e);
+
             context.json(new JsonObject().put("error", e.getMessage()));
             return;
           }
 
           // Create kafka ACL for user and topic
           try {
-            kafkaShellClient.addACLRule(args.environmentId); // Create kafka ACL for environmentId
+            String rule = kafkaShellClient.createACLRule(args.environmentId); // Create kafka ACL for environmentId
+            kafkaShellClient.run(rule);
           } catch (Exception e) {
             context.json(new JsonObject().put("error", e.getMessage()));
             return;
@@ -259,30 +245,32 @@ public class Bootstrap {
           // // TODO input validation
           // Generate arguments for flink job
           // TODO abstract into own Aritfact Source module
-          FlinkArtifactGenerator sourceTable = new FlinkArtifactGenerator(
-            args.environmentId
-          );
           String sourceString;
           try {
             sourceString =
-              sourceTable.createSourceTable(args.databaseName, args.tableName);
+              flinkArtifactGenerator.createSourceTable(
+                args.databaseName,
+                args.tableName,
+                args.environmentId
+              );
 
-            System.out.println("SOURCE......." + sourceString);
+            System.out.println(sourceString);
           } catch (Throwable e) {
             context.json(new JsonObject().put("error", e.getMessage()));
             return;
           }
 
-          String agreggateString = sourceTable.createAgreggateQuery(
+          String agreggateString = flinkArtifactGenerator.createAgreggateQuery(
             args.tableName,
             args.fieldName
           );
           System.out.println("AGG......." + agreggateString);
 
-          String sinkString = sourceTable.createSinkTable(
+          String sinkString = flinkArtifactGenerator.createSinkTable(
             args.databaseName,
             args.tableName,
-            args.fieldName
+            args.fieldName,
+            args.environmentId
           );
           System.out.println("SINK......." + sinkString);
 
@@ -296,33 +284,30 @@ public class Bootstrap {
           );
           System.out.println("VALID......." + validJSON);
 
-          FlinkClient flinkClient = new FlinkClient();
-
-          System.out.println("FLINK CLIENT CREATED.......");
-
           try {
-            this.settings = new Settings(this.stage);
-            StageInstance stage = settings.settings;
-
             flinkClient
-              .runJob(validJSON, client, stage.services.flink.jar)
+              .runJob(
+                validJSON,
+                client,
+                this.settings.settings.services.flink.jar
+              )
               .onSuccess(
                 response -> {
-                  System.out.println("SUCCESS.......");
-                  // TODO send the job id back to user so they can check the status with it
                   System.out.println(response.body());
                   context.json(
                     new JsonObject()
                       .put("name", "successfully started Flink job.")
                       .put("environmentId", args.environmentId)
                       .put("apiKey", apiKeyForUser)
-                      .put("jobId", response.body()) // TODO extract on job id
+                      .put(
+                        "jobId",
+                        response.bodyAsJson(FlinkResponseShape.class).jobid
+                      )
                   );
                 }
               )
               .onFailure(
                 error -> {
-                  System.out.println("FAILED.......");
                   System.out.println(error);
                   context.json(
                     new JsonObject().put("error", "error launching flink job.")
@@ -368,22 +353,18 @@ public class Bootstrap {
               new JsonObject().put("message", message).put("code", 4001)
             );
           }
-          FlinkClient flinkClient = new FlinkClient();
+          FlinkClient flinkClient = new FlinkClient(this.settings);
 
           try {
             flinkClient
               .runJob("", client, "/jobs/" + args.jobId)
               .onSuccess(
                 response -> {
-                  // TODO send the job id back to user so they can check the status with it
-                  System.out.println("success");
-                  System.out.println(response.body());
                   context.json(new JsonObject().put("name", response.body()));
                 }
               )
               .onFailure(
                 error -> {
-                  System.out.println("here" + error);
                   context.json(
                     new JsonObject().put("error", "error checking flink job.")
                   );
