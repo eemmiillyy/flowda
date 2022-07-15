@@ -22,8 +22,7 @@ public class SettingsTest {
   String stage = "development";
   String plaintextPassword = "tester";
   String encryptedPassword = "Pb7IvdI9yWPJTgjoYuSVAQ==";
-  String pathToFixture =
-    "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/test/resources/Settings.json";
+  String pathToFixture = "src/test/resources/Settings.json";
 
   @BeforeEach
   public void setup() throws IOException {

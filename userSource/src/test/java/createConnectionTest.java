@@ -39,8 +39,6 @@ import userSource.Settings.Settings;
 public class createConnectionTest {
 
   static String stage = "test";
-  static String pathToFixture =
-    "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/test/resources/Settings.json";
   Vertx vertx = Vertx.vertx();
   VertxTestContext testContext;
   HttpServer mockServerDebeziumBeforeInit;

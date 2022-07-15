@@ -51,11 +51,7 @@ public class Settings {
 
   public Settings(String stage) {
     try {
-      this.settings =
-        this.load(
-            stage,
-            "/Users/emilymorgan/Desktop/pdpDataProjections/userSource/src/main/java/userSource/Settings/Settings.json"
-          );
+      this.settings = this.load(stage, "src/main/resources/Settings.json");
 
       String saltBase64Encoded = "yGfJMijTbVzzx1Ywb3d2dd=="; // TODO take from .env
       this.salt = Base64.getDecoder().decode(saltBase64Encoded);
