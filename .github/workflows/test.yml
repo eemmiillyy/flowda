@@ -18,7 +18,7 @@ jobs:
         id: maven-cache
         uses: actions/cache@v2
         with:
-          path: ~/mvn/caches
+          path: userSource/.m2/repository
           key: ${{ hashFiles('userSource/pom.xml') }}
           restore-keys: |
             ${{ hashFiles('userSource/pom.xml') }}
@@ -30,5 +30,8 @@ jobs:
           mvn clean install
           -DskipTests=true
 
-      - name: Integration Tests
-        run: cd ./userSource && mvn clean test
+      #  Tests run automatically
+      - name: Build
+        run: >
+          cd ./userSource && 
+          mvn clean package
