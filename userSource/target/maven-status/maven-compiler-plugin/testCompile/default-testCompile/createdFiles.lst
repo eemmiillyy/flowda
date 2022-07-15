@@ -1,5 +1,5 @@
 SettingsTest.class
-TestInstance.class
-createConnectionTest.class
-checkJobStatusTest.class
-apiKeyTest.class
+ApiKeyTest.class
+CheckJobStatusEndpointTest.class
+CreateConnectionEndpointTest.class
+CreateQueryEndpointTest.class

@@ -36,23 +36,22 @@ import userSource.Kafka.KafkaShellClient;
 import userSource.Settings.Settings;
 
 @ExtendWith(VertxExtension.class)
-public class createConnectionTest {
+public class CreateQueryEndpointTest {
 
   static String stage = "test";
   Vertx vertx = Vertx.vertx();
   VertxTestContext testContext;
-  HttpServer mockServerDebeziumBeforeInit;
-  Future<HttpServer> mockServerDebezium;
   HttpServer mockServerFlinkBeforeInit;
   Future<HttpServer> mockServerFlink;
   String matcher = "tester";
   Settings settings = new Settings(stage);
+  Bootstrap mockedAppServer;
+  Future<String> futureApp;
 
   @BeforeEach
   public void setup(TestInfo testInfo)
     throws IOException, InterruptedException {
     this.testContext = new VertxTestContext();
-    startDebeziumServerMock();
     startFlinkServerMock();
     FlinkArtifactGenerator flinkStub = createFlinkStub();
     KafkaShellClient kafkaShellStub = createKafkaShellStub();
@@ -101,7 +100,6 @@ public class createConnectionTest {
 
   public FlinkArtifactGenerator createFlinkStub() {
     // Replace kafka consumer methods with dummy output or do nothing
-
     FlinkArtifactGenerator flinkStub = new FlinkArtifactGenerator(
       this.settings
     );
@@ -137,13 +135,12 @@ public class createConnectionTest {
     KafkaShellClient kafkaShellStub,
     FlinkArtifactGenerator flinkStub
   )
-    throws IOException {
+    throws IOException, InterruptedException {
     Bootstrap bootstrap = new Bootstrap(stage);
-    Bootstrap spy = Mockito.spy(bootstrap);
-
-    spy.kafkaShellClient = kafkaShellStub;
-    spy.flinkArtifactGenerator = flinkStub;
-    spy.start();
+    this.mockedAppServer = Mockito.spy(bootstrap);
+    mockedAppServer.kafkaShellClient = kafkaShellStub;
+    mockedAppServer.flinkArtifactGenerator = flinkStub;
+    this.futureApp = mockedAppServer.start();
   }
 
   public void startFlinkServerMock() {
@@ -165,126 +162,53 @@ public class createConnectionTest {
         .onFailure(message -> System.out.println(message));
   }
 
-  public void startDebeziumServerMock() {
-    this.mockServerDebeziumBeforeInit = vertx.createHttpServer();
-
-    Router router = Router.router(vertx);
-    router.route().handler(BodyHandler.create());
-    router
-      .route("/connectors")
-      .handler(
-        context -> {
-          context.json(new JsonObject().put("name", "mockConnector"));
-        }
-      );
-    this.mockServerDebezium =
-      mockServerDebeziumBeforeInit
-        .requestHandler(router)
-        .listen(9000)
-        .onFailure(message -> System.out.println(message));
-  }
-
   @AfterEach
   public void teardown() {
-    this.mockServerDebeziumBeforeInit.close();
-    this.mockServerDebeziumBeforeInit = null;
-    this.mockServerDebezium = null;
     this.mockServerFlinkBeforeInit.close();
     this.mockServerFlinkBeforeInit = null;
     this.mockServerFlink = null;
+    this.mockedAppServer.close();
   }
-
-  public void runTest(String input, String output) throws InterruptedException {
-    this.mockServerDebezium.onSuccess(
-        server -> {
-          System.out.println(
-            "Mock server started on port" + server.actualPort()
-          );
-
-          WebClient client = WebClient.create(vertx);
-          client
-            .post(8888, "localhost", "/createConnection")
-            .sendJsonObject(new JsonObject(input))
-            .onComplete(
-              testContext.succeeding(
-                buffer ->
-                  testContext.verify(
-                    () -> {
-                      assertTrue(buffer.bodyAsString().contains(output));
-                      testContext.completeNow();
-                    }
-                  )
-              )
-            );
-        }
-      );
-    testContext.awaitCompletion(5, TimeUnit.SECONDS);
-    assertTrue(testContext.completed() == true);
-  }
-
-  @Test
-  public void testSucceedsWithValidArugments() throws Throwable {
-    runTest(
-      "{\"connectionString\": \"mysql://u:p@127.0.0.1:3306/inventory\", \"environmentId\": \"u\"}",
-      "{\"data\":\"mockConnector\"}"
-    );
-  }
-
-  @Test
-  public void testThrowsWithMissingConnectionString() throws Throwable {
-    runTest(
-      "{ \"environmentId\": \"u\"}",
-      "{\"message\":\"connectionString are missing.\",\"code\":4001}"
-    );
-  }
-
-  @Test
-  public void testThrowsWithMissingEnvironmentId() throws Throwable {
-    runTest(
-      "{\"connectionString\": \"mysql://u:p@127.0.0.1:3306/inventory\"}",
-      "{\"message\":\"environmentId are missing.\",\"code\":4001}"
-    );
-  }
-
-  @Test
-  public void testFailsWithNoArguments() throws Throwable {
-    runTest(
-      "{}",
-      "{\"message\":\"connectionString,environmentId are missing.\",\"code\":4001}"
-    );
-  }
-
-  // TODO Check there are no thread errors
-  // @Test
-  // public void testThreadSafe() {}
 
   // // TODO MOVE
   public void runTestQuery(String input, String output)
     throws InterruptedException {
-    this.mockServerFlink.onSuccess(
-        server -> {
-          System.out.println(
-            "Mock server started on port" + server.actualPort()
-          );
-          WebClient client = WebClient.create(vertx);
-          client
-            .post(8888, "localhost", "/createQuery")
-            .sendJsonObject(new JsonObject(input))
-            .onComplete(
-              testContext.succeeding(
-                buffer ->
-                  testContext.verify(
-                    () -> {
-                      assertTrue(buffer.bodyAsString().contains(output));
-                      testContext.completeNow();
-                    }
-                  )
-              )
+    this.futureApp.onSuccess(
+        app -> {
+          System.out.println("APP UP" + app);
+          this.mockServerFlink.onSuccess(
+              server -> {
+                System.out.println(
+                  "Mock server started on port" + server.actualPort()
+                );
+                WebClient client = WebClient.create(vertx);
+                client
+                  .post(8888, "localhost", "/createQuery")
+                  .sendJsonObject(new JsonObject(input))
+                  .onComplete(
+                    testContext.succeeding(
+                      buffer -> {
+                        System.out.println(buffer.bodyAsString());
+                        testContext.verify(
+                          () -> {
+                            assertTrue(buffer.bodyAsString().contains(output));
+                            testContext.completeNow();
+                          }
+                        );
+                      }
+                    )
+                  );
+              }
             );
+          try {
+            testContext.awaitCompletion(20, TimeUnit.SECONDS);
+          } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+          assertTrue(testContext.completed() == true);
         }
       );
-    testContext.awaitCompletion(15, TimeUnit.SECONDS);
-    assertTrue(testContext.completed() == true);
   }
 
   @Test

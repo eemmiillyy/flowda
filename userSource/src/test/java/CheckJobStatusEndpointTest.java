@@ -1,4 +1,4 @@
-public class checkJobStatusTest {
+public class CheckJobStatusEndpointTest {
   // Create Connection
   // Check missing fields are validated
   // Check arguments are valid length and type

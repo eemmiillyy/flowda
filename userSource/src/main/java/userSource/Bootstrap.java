@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.google.gson.Gson;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -67,7 +68,11 @@ public class Bootstrap {
     return returning;
   }
 
-  public void start() {
+  public void close() {
+    this.server.close();
+  }
+
+  public Future<String> start() {
     vertexInstance = Vertx.vertx();
     server = vertexInstance.createHttpServer();
     g = new Gson();
@@ -375,19 +380,27 @@ public class Bootstrap {
           }
         }
       );
-    server
-      // Handle every request using the router
-      .requestHandler(router)
-      // Start listening
-      .listen(8888)
-      .onFailure(message -> System.out.println(message))
-      // Print the port
-      .onSuccess(
-        server ->
-          System.out.println(
-            "HTTP server started on port " +
-            this.settings.settings.services.debezium.servers
-          )
-      );
+
+    Future<String> future = Future.future(
+      test -> {
+        server
+          // Handle every request using the router
+          .requestHandler(router)
+          // Start listening
+          .listen(8888)
+          .onFailure(message -> System.out.println(message))
+          // Print the port
+          .onSuccess(
+            server -> {
+              System.out.println(
+                "HTTP server started on port " +
+                this.settings.settings.services.debezium.servers
+              );
+            }
+          );
+      }
+    );
+
+    return future;
   }
 }
