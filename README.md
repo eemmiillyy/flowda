@@ -190,6 +190,16 @@ _Response_
 
 ## Error Codes
 
+`4000`: Unable to parse body of request. Needs to be JSON.
+`4001`: Missing user input.
+`4002`: User input validation error.
+`4003`: Unable to communicate with debezium
+`4004`: API key generation issue
+`4005`: Kafka ACL rule creation issue
+`4006`: Flink artefact generation issue
+`4007`: Issue running generated Flink job
+`4008`: Unexpected/unhandled error during request
+
 ## Debug
 
 PLANETSCALE MONITORING

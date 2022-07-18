@@ -1,6 +1,7 @@
 package userSource;
 
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -69,6 +70,10 @@ public class Bootstrap {
     return returning;
   }
 
+  protected JsonObject returnError(String message, int code) {
+    return new JsonObject().put("message", message).put("code", code);
+  }
+
   public void close() {
     this.server.close();
   }
@@ -90,7 +95,7 @@ public class Bootstrap {
           try {
             body = context.body();
           } catch (Throwable e) {
-            context.json(new JsonObject().put("message", e).put("code", 4000));
+            context.json(returnError(e.getMessage(), 4000));
           }
 
           // Parse arguments into JSON for easier handling in resolver
@@ -98,10 +103,8 @@ public class Bootstrap {
             body.asJsonObject().toString(),
             CreateConnectionInput.class
           );
-          System.out.println(args);
+
           // Check args are present
-          // TODO return the error status code
-          // TODO this only accepts {} right now, make sure now JSON object is also accepted
           Field[] fields = args.getClass().getFields();
           if (allFieldsPresent(fields, args).status == false) {
             String message =
@@ -110,31 +113,33 @@ public class Bootstrap {
                 allFieldsPresent(fields, args).missingFieldNames
               ) +
               " are missing.";
-            System.out.println(message);
-
-            context.json(
-              new JsonObject().put("message", message).put("code", 4001)
-            );
+            context.json(returnError(message, 4001));
             return;
           }
 
-          // Validate args do not pass length or contain bad characters
+          // Validate connection string
           try {
             ArgumentValidator validator = new ArgumentValidator();
             validator.validateConnectionString(args.connectionString);
           } catch (Throwable e) {
-            context.json(new JsonObject().put("message", e).put("code", 4002));
+            context.json(returnError(e.getMessage(), 4002));
           }
 
-          // Format connection string for debezium
-          // TODO validate the connection string so this never throws
-
+          // Validate environment id
+          try {
+            ArgumentValidator validator = new ArgumentValidator();
+            validator.validateStringInput(args.environmentId, "environmentId");
+          } catch (Throwable e) {
+            context.json(returnError(e.getMessage(), 4002));
+            return;
+          }
+          URI connectionStringFormatted = URI.create(args.connectionString);
           String formatted = debeziumArtifactGenerator.connectionString(
-            args.connectionString,
+            connectionStringFormatted,
             args.environmentId
           );
 
-          // Create the kafka connector with REST Client
+          // Create the kafka connector with Debezium REST Client
           try {
             this.debeziumClient.createConnector(formatted, client)
               .onSuccess(
@@ -146,7 +151,6 @@ public class Bootstrap {
                   context.json(
                     new JsonObject()
                     .put(
-                        // TODO return a bad status code for the user instead of 200
                         "data",
                         result.bodyAsJson(DebeziumResponseShape.class).name !=
                           null
@@ -158,8 +162,7 @@ public class Bootstrap {
                 }
               );
           } catch (Throwable e) {
-            System.out.println(e.toString());
-            context.json(new JsonObject().put("message", e).put("code", 4002));
+            context.json(returnError(e.getMessage(), 4003));
           }
         }
       );
@@ -169,7 +172,6 @@ public class Bootstrap {
       .route("/createQuery")
       .handler(
         context -> {
-          // Get the query parameter "name"
           io.vertx.ext.web.RequestBody body = null;
           try {
             body = context.body();
@@ -182,8 +184,7 @@ public class Bootstrap {
             body.asJsonObject().toString(),
             CreateQueryInput.class
           );
-          // Check args are present
-          // TODO return the error status code
+
           Field[] fields = args.getClass().getFields();
           if (allFieldsPresent(fields, args).status == false) {
             String message =
@@ -193,26 +194,42 @@ public class Bootstrap {
               ) +
               " are missing.";
             System.out.println(message);
-            context.json(
-              new JsonObject().put("message", message).put("code", 4001)
-            );
+            context.json(returnError(message, 4001));
+            return;
+          }
+
+          // Validate connection string
+          try {
+            ArgumentValidator validator = new ArgumentValidator();
+            validator.validateConnectionString(args.connectionString);
+          } catch (Throwable e) {
+            context.json(returnError(e.getMessage(), 4002));
+            return;
+          }
+
+          // Validate alphanumeric fields
+          try {
+            ArgumentValidator validator = new ArgumentValidator();
+            validator.validateStringInput(args.environmentId, "environmentId");
+            validator.validateStringInput(args.databaseName, "databaseName");
+            validator.validateStringInput(args.tableName, "tableName");
+            validator.validateStringInput(args.fieldName, "fieldName");
+          } catch (Throwable e) {
+            context.json(returnError(e.getMessage(), 4002));
             return;
           }
 
           // TODO authorisation with JWT to make sure they control the db.
 
-          // TODO Abstract this into Kafka source module
-          // Create access token for user
           ApiKey apiKeyFactory = new ApiKey();
           String apiKeyForUser;
           try {
             apiKeyForUser = apiKeyFactory.create();
           } catch (Exception e) {
-            context.json(new JsonObject().put("error", e.getMessage()));
+            context.json(returnError(e.getMessage(), 4004));
             return;
           }
 
-          // Create kafka user for environmentId/accessToken
           try {
             String rule = kafkaShellClient.createACLUser(
               args.environmentId,
@@ -220,37 +237,28 @@ public class Bootstrap {
             );
             kafkaShellClient.run(rule);
           } catch (Exception e) {
-            context.json(new JsonObject().put("error", e.getMessage()));
+            context.json(returnError(e.getMessage(), 4005));
             return;
           }
-          // Group
           try {
             String rule = kafkaShellClient.createACLRuleConsumer(
               args.environmentId
-            ); // Create kafka ACL for environmentId
+            );
             kafkaShellClient.run(rule);
           } catch (Exception e) {
-            System.out.println(e);
-
-            context.json(new JsonObject().put("error", e.getMessage()));
+            context.json(returnError(e.getMessage(), 4005));
             return;
           }
-
-          // Create kafka ACL for user and topic
           try {
             String rule = kafkaShellClient.createACLRule(args.environmentId); // Create kafka ACL for environmentId
             kafkaShellClient.run(rule);
           } catch (Exception e) {
-            context.json(new JsonObject().put("error", e.getMessage()));
+            context.json(returnError(e.getMessage(), 4005));
             return;
           }
 
-          // // Create kafka client with the kafka user that has access to read/write to environmentId.*
-          // // If there was an error at any point, delete the ACL for the user.
+          // TODO delete ACL updates if there was an error
 
-          // // TODO input validation
-          // Generate arguments for flink job
-          // TODO abstract into own Aritfact Source module
           String sourceString;
           try {
             sourceString =
@@ -262,7 +270,7 @@ public class Bootstrap {
 
             System.out.println(sourceString);
           } catch (Throwable e) {
-            context.json(new JsonObject().put("error", e.getMessage()));
+            context.json(returnError(e.getMessage(), 4006));
             return;
           }
 
@@ -270,7 +278,6 @@ public class Bootstrap {
             args.tableName,
             args.fieldName
           );
-          System.out.println("AGG......." + agreggateString);
 
           String sinkString = flinkArtifactGenerator.createSinkTable(
             args.databaseName,
@@ -278,7 +285,6 @@ public class Bootstrap {
             args.fieldName,
             args.environmentId
           );
-          System.out.println("SINK......." + sinkString);
 
           // The field to sum needs to be an integer.
           String validJSON = String.format(
@@ -288,7 +294,6 @@ public class Bootstrap {
             sinkString,
             args.tableName
           );
-          System.out.println("VALID......." + validJSON);
 
           try {
             flinkClient
@@ -300,7 +305,7 @@ public class Bootstrap {
               .onSuccess(
                 response -> {
                   System.out.println(response.body());
-                  System.out.println("...........................DONE");
+
                   context.json(
                     new JsonObject()
                       .put("name", "successfully started Flink job.")
@@ -317,14 +322,16 @@ public class Bootstrap {
                 error -> {
                   System.out.println(error);
                   context.json(
-                    new JsonObject().put("error", "error launching flink job.")
+                    returnError("Issue launching generated flink job", 4007)
                   );
                 }
               );
             // TODO get job status after in order to make sure it went through
 
           } catch (Throwable e) {
-            context.json(new JsonObject().put("name", e));
+            context.json(
+              returnError("Unexpected error during create query request", 4008)
+            );
           }
         }
       );
