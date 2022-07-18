@@ -32,6 +32,9 @@ jobs:
 
       #  Tests run automatically
       - name: Build
+        env:
+          SECRET: ${{ secrets.SECRET }}
+          STAGE: test
         run: >
           cd ./userSource && 
           mvn clean package

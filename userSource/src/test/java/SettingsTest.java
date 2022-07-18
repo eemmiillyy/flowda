@@ -21,12 +21,12 @@ public class SettingsTest {
   Settings spy;
   String stage = "development";
   String plaintextPassword = "tester";
-  String encryptedPassword = "Pb7IvdI9yWPJTgjoYuSVAQ==";
+  String encryptedPassword = "5lqrdTVObwSS/F/2mnhJJA==";
   String pathToFixture = "src/test/resources/Settings.json";
 
   @BeforeEach
   public void setup() throws IOException {
-    Settings settings = new Settings(stage);
+    Settings settings = new Settings();
     this.spy = Mockito.spy(settings);
     spy.settings = spy.load(stage, pathToFixture);
   }
@@ -73,7 +73,7 @@ public class SettingsTest {
   @Test
   public void testEncryptionAndDecryptAreThreadSafe()
     throws InterruptedException, IOException {
-    Settings set = new Settings(stage);
+    Settings set = new Settings();
     Settings mutableSettings = Mockito.spy(set);
     mutableSettings.settings = mutableSettings.load(stage, pathToFixture);
 

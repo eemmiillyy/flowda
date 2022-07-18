@@ -6,7 +6,7 @@
           "kafka": {
             "admin": {
               "user": "emily",
-              "$$password": "O4YcSK5SZtt4se2paY8QBw=="
+              "$$password": "9gO7WsUXdxX7uCaCt4p7kw=="
             },
             "bootstrap": {
               "serversExternal": "localhost:9093",
@@ -38,7 +38,7 @@
           "kafka": {
             "admin": {
               "user": "emily",
-              "$$password": "O4YcSK5SZtt4se2paY8QBw=="
+              "$$password": "9gO7WsUXdxX7uCaCt4p7kw=="
             },
             "bootstrap": {
               "containerName": "pdpdataprojections_kafka_1",
@@ -71,7 +71,7 @@
           "kafka": {
             "admin": {
               "user": "emily",
-              "$$password": "O4YcSK5SZtt4se2paY8QBw=="
+              "$$password": "5lqrdTVObwSS/F/2mnhJJA=="
             },
             "bootstrap": {
               "containerName": "pdpdataprojections_kafka_1",

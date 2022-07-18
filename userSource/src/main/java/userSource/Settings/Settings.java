@@ -35,7 +35,8 @@ public class Settings {
   Pattern doubleDollarSignPattern = Pattern.compile("^\\$\\$[A-Za-z0-9]+");
 
   public StageInstance settings;
-  String password = "password"; // TODO take from .env
+  String password = System.getenv("SECRET"); // TODO take from .env
+  String stage = System.getenv("STAGE");
 
   byte[] salt;
   int interationCount;
@@ -49,9 +50,9 @@ public class Settings {
   SecretKey encryptedKey;
   Cipher cipher;
 
-  public Settings(String stage) {
+  public Settings() {
     try {
-      this.settings = this.load(stage, "src/main/resources/Settings.json");
+      this.settings = this.load(this.stage, "src/main/resources/Settings.json");
 
       String saltBase64Encoded = "yGfJMijTbVzzx1Ywb3d2dd=="; // TODO take from .env
       this.salt = Base64.getDecoder().decode(saltBase64Encoded);
@@ -99,9 +100,14 @@ public class Settings {
     while (reader.hasNext()) {
       SettingsShape s = new Gson().fromJson(reader, SettingsShape.class);
       System.out.println(stage + " from settings");
-      return stage == "production"
-        ? s.stage.production
-        : stage == "test" ? s.stage.test : s.stage.development;
+      switch (stage) {
+        case "production":
+          return s.stage.production;
+        case "test":
+          return s.stage.test;
+        default:
+          return s.stage.development;
+      }
     }
     reader.endArray();
     throw new IOException("Something went wrong");

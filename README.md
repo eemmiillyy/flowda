@@ -17,7 +17,7 @@ cd bin
 **NOTE** If there are no resources for a job you need to manually start a task manager with `bin/taskmanager.sh start`
 **NOTE** Flink config is inside `conf/flink-conf.yaml`
 
-#### Start user service
+#### Build user service
 
 ```bash
 cd processingSource
@@ -30,13 +30,13 @@ mvn package
 ```bash
 cd userSource
 mvn install
-mvn package
+export SECRET=[secret] STAGE=[stage] && mvn package && unset SECRET STAGE
 ```
 
 #### Running the user service .jar
 
 ```bash
-java -jar target/userSource-1.0-SNAPSHOT.jar
+SECRET=[secret] STAGE=[stage] java -jar target/userSource-1.0-SNAPSHOT.jar
 ```
 
 **NOTE** To kill java processes
@@ -83,20 +83,38 @@ Inside `/opt/bitnami/kafka/bin`
 2. Edit `Server.java` to:
 
 ```java
-    Settings settings = new Settings("development");
+    Settings settings = new Settings(System.getenv("STAGE"));
     settings.encrypt();
     settings.decrypt();
 ```
+
+3. Run
+
+```bash
+export SECRET=[secret] STAGE=development && mvn package -Dmaven.test.skip && unset SECRET STAGE
+SECRET=[secret] STAGE=development java -jar target/userSource-1.0-SNAPSHOT.jar
+```
+
+**NOTE** Decryption will fail during this since it will try to decrypt the plaintext which will throw an error. That is expected.
+**NOTE** If the stage passwords are different you need to
 
 3. Replace `Settings.json` values with encrypted ones.
    **NOTE** right now all fields prefixed with `$$` inside of each specified stage will be
    encrypted and decrypted with the command from step 2.
    If you want to encrypt or decrypt only a single field at a time you can use `encryptField(String field)` or `decryptField(String field)`
 
+4. Make sure it works with
+
+```bash
+SECRET=[secret] STAGE=development java -jar target/userSource-1.0-SNAPSHOT.jar
+```
+
+Then undo changes to server and re run with new secret.
+
 ## Test
 
 Tests use JUnit and Mockito. There are a combination of unit tests and integration tests. Each test suite for each domain should live beside the module they are testing.
-`mvn test` to check the services are healthy
+`export SECRET=[secret] STAGE=test && mvn test && unset SECRET STAGE` to check the services are healthy
 
 Run a single test
 `mvn -Dtest=AppTest test`

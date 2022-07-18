@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
@@ -35,8 +36,8 @@ public class Bootstrap {
   Vertx vertexInstance;
   Gson g;
 
-  public Bootstrap(String stage) {
-    this.settings = new Settings(stage);
+  public Bootstrap() {
+    this.settings = new Settings();
     this.kafkaShellClient = new KafkaShellClient(this.settings);
     this.flinkArtifactGenerator = new FlinkArtifactGenerator(this.settings);
     this.debeziumArtifactGenerator =
@@ -72,7 +73,7 @@ public class Bootstrap {
     this.server.close();
   }
 
-  public Future<String> start() {
+  public Future<HttpServer> start() {
     vertexInstance = Vertx.vertx();
     server = vertexInstance.createHttpServer();
     g = new Gson();
@@ -299,6 +300,7 @@ public class Bootstrap {
               .onSuccess(
                 response -> {
                   System.out.println(response.body());
+                  System.out.println("...........................DONE");
                   context.json(
                     new JsonObject()
                       .put("name", "successfully started Flink job.")
@@ -381,26 +383,11 @@ public class Bootstrap {
         }
       );
 
-    Future<String> future = Future.future(
-      test -> {
-        server
-          // Handle every request using the router
-          .requestHandler(router)
-          // Start listening
-          .listen(8888)
-          .onFailure(message -> System.out.println(message))
-          // Print the port
-          .onSuccess(
-            server -> {
-              System.out.println(
-                "HTTP server started on port " +
-                this.settings.settings.services.debezium.servers
-              );
-            }
-          );
-      }
-    );
-
-    return future;
+    return server
+      // Handle every request using the router
+      .requestHandler(router)
+      // Start listening
+      .listen(8888)
+      .onFailure(message -> System.out.println(message));
   }
 }

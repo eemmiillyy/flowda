@@ -31,9 +31,9 @@ public class CreateConnectionEndpointTest {
   HttpServer mockServerFlinkBeforeInit;
   Future<HttpServer> mockServerFlink;
   String matcher = "tester";
-  Settings settings = new Settings(stage);
+  Settings settings = new Settings();
   Bootstrap mockedAppServer;
-  Future<String> futureApp;
+  Future<HttpServer> futureApp;
 
   @BeforeEach
   public void setup(TestInfo testInfo)
@@ -45,7 +45,7 @@ public class CreateConnectionEndpointTest {
 
   public void launchAppWithTestSettings()
     throws IOException, InterruptedException {
-    Bootstrap bootstrap = new Bootstrap(stage);
+    Bootstrap bootstrap = new Bootstrap();
     this.mockedAppServer = Mockito.spy(bootstrap);
     this.futureApp = this.mockedAppServer.start();
   }
@@ -105,15 +105,15 @@ public class CreateConnectionEndpointTest {
                   );
               }
             );
-          try {
-            testContext.awaitCompletion(20, TimeUnit.SECONDS);
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-          assertTrue(testContext.completed() == true);
         }
       );
+    try {
+      testContext.awaitCompletion(20, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    assertTrue(testContext.completed() == true);
   }
 
   @Test

@@ -44,9 +44,9 @@ public class CreateQueryEndpointTest {
   HttpServer mockServerFlinkBeforeInit;
   Future<HttpServer> mockServerFlink;
   String matcher = "tester";
-  Settings settings = new Settings(stage);
+  Settings settings = new Settings();
   Bootstrap mockedAppServer;
-  Future<String> futureApp;
+  Future<HttpServer> futureApp;
 
   @BeforeEach
   public void setup(TestInfo testInfo)
@@ -136,11 +136,10 @@ public class CreateQueryEndpointTest {
     FlinkArtifactGenerator flinkStub
   )
     throws IOException, InterruptedException {
-    Bootstrap bootstrap = new Bootstrap(stage);
+    Bootstrap bootstrap = new Bootstrap();
     this.mockedAppServer = Mockito.spy(bootstrap);
     mockedAppServer.kafkaShellClient = kafkaShellStub;
     mockedAppServer.flinkArtifactGenerator = flinkStub;
-    this.futureApp = mockedAppServer.start();
   }
 
   public void startFlinkServerMock() {
@@ -173,7 +172,10 @@ public class CreateQueryEndpointTest {
   // // TODO MOVE
   public void runTestQuery(String input, String output)
     throws InterruptedException {
-    this.futureApp.onSuccess(
+    System.out.println("RUNNING TEST QUERY");
+
+    this.mockedAppServer.start()
+      .onSuccess(
         app -> {
           System.out.println("APP UP" + app);
           this.mockServerFlink.onSuccess(
@@ -200,15 +202,15 @@ public class CreateQueryEndpointTest {
                   );
               }
             );
-          try {
-            testContext.awaitCompletion(20, TimeUnit.SECONDS);
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-          assertTrue(testContext.completed() == true);
         }
       );
+    try {
+      testContext.awaitCompletion(20, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    assertTrue(testContext.completed() == true);
   }
 
   @Test
