@@ -52,6 +52,7 @@ public class KafkaClient {
     props.put("value.deserializer", StringDeserializer.class.getName());
     props.put("auto.offset.reset", "earliest");
     props.put("security.protocol", stage.services.kafka.sasl.protocol);
+    props.put("default.api.timeout.ms", 3000);
     props.put(SaslConfigs.SASL_MECHANISM, stage.services.kafka.sasl.mechanism);
     props.put(SaslConfigs.SASL_JAAS_CONFIG, login);
 

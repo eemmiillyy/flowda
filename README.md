@@ -133,7 +133,7 @@ Verb: `POST`
 Response Code: `200`
 
 Creates a debezium/kafka connector for the given database. Introspects
-the database and creates a topic in the kafka cluster with `environmentId.dbName`
+the database and creates a topic in the kafka cluster with `environmentId.dbName`. There is no check for whether the database is reachable. That needs to be manually ensured. There is also no check to the permissions. Needs to be manually run.
 
 _Request_
 
@@ -160,7 +160,7 @@ Response Code: `200`
 
 Creates a Flink job that runs an aggregate sum query on the given
 table name and given column. Publishes the output to the same
-kafka cluster under the environmentId.dbName.tableName.fieldName_output topic.
+kafka cluster under the environmentId.dbName.tableName.fieldName_output topic. Fieldname is not validated.
 Requires a JWT cookie.
 Returns an access token that will be the users password for the kafka ACL for
 the topic.
@@ -196,7 +196,7 @@ _Response_
 `4003`: Unable to communicate with debezium
 `4004`: API key generation issue
 `4005`: Kafka ACL rule creation issue
-`4006`: Flink artefact generation issue
+`4006`: Flink artefact generation issue. May be the result of faulty kafka connection.
 `4007`: Issue running generated Flink job
 `4008`: Unexpected/unhandled error during request
 

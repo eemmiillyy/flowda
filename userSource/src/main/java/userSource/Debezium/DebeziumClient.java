@@ -31,6 +31,7 @@ public class DebeziumClient {
     System.out.println(uri.toString());
     Future<HttpResponse<Buffer>> res = client
       .post(port, host, "/connectors")
+      .timeout(3000)
       .sendJsonObject(new JsonObject(arg));
     return res;
   }

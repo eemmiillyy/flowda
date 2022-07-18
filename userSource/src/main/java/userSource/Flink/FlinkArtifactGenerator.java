@@ -112,7 +112,6 @@ public class FlinkArtifactGenerator {
   public String createSinkTable(
     String databaseName,
     String tableName,
-    String fieldName,
     String environmentId
   ) {
     return (
@@ -174,17 +173,19 @@ public class FlinkArtifactGenerator {
   )
     throws Throwable {
     KafkaConsumer<String, String> client = createKafkaConsumer();
-    // Check if topic exists
-    Map<String, List<PartitionInfo>> topicMap = client.listTopics();
-    System.out.println(topicMap.toString());
+    Map<String, List<PartitionInfo>> topicMap;
+    try {
+      topicMap = client.listTopics();
+    } catch (Exception e) {
+      throw new Exception("Unable to connect to kafka cluster");
+    }
+
     if (!(topicMap.containsKey(environmentId))) {
       throw new Exception("environmentId (topic name) is wrong");
     }
-    System.out.println("SUBSCRIBING");
 
     // Subscribe to schema topic
     client.subscribe(Arrays.asList(environmentId));
-    System.out.println("SUBSCRIBTT");
 
     boolean matched = false;
 
@@ -194,7 +195,6 @@ public class FlinkArtifactGenerator {
 
     try {
       ConsumerRecords<String, String> records = client.poll(1000);
-      System.out.println(records.toString());
       for (ConsumerRecord<String, String> record : records) {
         if (record.value().contains(toMatch)) {
           output = record.value();
@@ -204,7 +204,9 @@ public class FlinkArtifactGenerator {
       }
       if (!matched) {
         // No table in db with that name
-        throw new Exception("table name is wrong");
+        throw new Exception(
+          "Could not find provided table name in kafka records. Please check that your table name is correct AND that the connection string provided is valid."
+        );
       }
     } finally {
       client.close();
@@ -234,7 +236,9 @@ public class FlinkArtifactGenerator {
             }
           }
         } else {
-          throw new Exception("database name is wrong");
+          throw new Exception(
+            "Provided database name does not match kafka records."
+          );
         }
       }
 

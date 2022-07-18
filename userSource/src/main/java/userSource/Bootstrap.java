@@ -144,10 +144,6 @@ public class Bootstrap {
             this.debeziumClient.createConnector(formatted, client)
               .onSuccess(
                 result -> {
-                  System.out.println(result.bodyAsString());
-                  System.out.println(
-                    result.bodyAsJson(DebeziumResponseShape.class)
-                  );
                   context.json(
                     new JsonObject()
                     .put(
@@ -158,6 +154,16 @@ public class Bootstrap {
                           : result.bodyAsJson(DebeziumResponseShape.class)
                             .message
                       )
+                  );
+                }
+              )
+              .onFailure(
+                handler -> {
+                  context.json(
+                    returnError(
+                      "Unable to communicate with debezium service. It may be offline.",
+                      4003
+                    )
                   );
                 }
               );
@@ -282,7 +288,6 @@ public class Bootstrap {
           String sinkString = flinkArtifactGenerator.createSinkTable(
             args.databaseName,
             args.tableName,
-            args.fieldName,
             args.environmentId
           );
 
