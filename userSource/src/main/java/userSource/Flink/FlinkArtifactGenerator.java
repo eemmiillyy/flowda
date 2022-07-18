@@ -150,9 +150,10 @@ public class FlinkArtifactGenerator {
    * @param databaseName
    * @param tableName
    * @return The string necessary for a Flink Kafka source connector to be started.
+   * @throws Exception
    * @throws Throwable
    */
-  public KafkaConsumer<String, String> createKafkaConsumer() {
+  public KafkaConsumer<String, String> createKafkaConsumer() throws Exception {
     KafkaClient kafka = new KafkaClient(
       this.settings.settings.services.kafka.admin.user,
       settings.decryptField(
@@ -160,15 +161,19 @@ public class FlinkArtifactGenerator {
       ),
       this.settings
     );
-    KafkaConsumer<String, String> client = kafka.create(
-      this.settings.settings.services.kafka.admin.user
-    );
-    return client;
+    KafkaConsumer<String, String> client;
+    try {
+      client = kafka.create(this.settings.settings.services.kafka.admin.user);
+      return client;
+    } catch (Exception e) {
+      throw new Exception("Unable to generate kafka consumer client");
+    }
   }
 
   public String createSourceTable(
     String databaseName,
     String tableName,
+    String fieldName,
     String environmentId
   )
     throws Throwable {
@@ -201,6 +206,12 @@ public class FlinkArtifactGenerator {
           matched = true; // Should be only one match
           break;
         }
+      }
+      // One consumer per consumer group per partition
+      if (records.isEmpty()) {
+        throw new Exception(
+          "Unable to fetch records from topic. Please check that you do not already have a job for this environment id."
+        );
       }
       if (!matched) {
         // No table in db with that name
@@ -242,11 +253,25 @@ public class FlinkArtifactGenerator {
         }
       }
 
+      Boolean fieldNameExistsInTable = false;
       // Format the create statement
       for (Map.Entry<String, String> entry : listOfKeys.entrySet()) {
         String key = entry.getKey();
         Object value = entry.getValue();
         output += key + " " + value + ", ";
+        if (Objects.equals(key, fieldName)) {
+          fieldNameExistsInTable = true;
+          if (!Objects.equals(value, "INT")) {
+            throw new Exception(
+              "Provided table name needs to be of type integer."
+            );
+          }
+        }
+      }
+      if (!fieldNameExistsInTable) {
+        throw new Exception(
+          "Provided field name does not exist within given table."
+        );
       }
 
       output +=

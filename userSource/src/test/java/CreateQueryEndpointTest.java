@@ -49,8 +49,7 @@ public class CreateQueryEndpointTest {
   Future<HttpServer> futureApp;
 
   @BeforeEach
-  public void setup(TestInfo testInfo)
-    throws IOException, InterruptedException {
+  public void setup(TestInfo testInfo) throws Exception {
     this.testContext = new VertxTestContext();
     startFlinkServerMock();
     FlinkArtifactGenerator flinkStub = createFlinkStub();
@@ -98,7 +97,7 @@ public class CreateQueryEndpointTest {
     return records;
   }
 
-  public FlinkArtifactGenerator createFlinkStub() {
+  public FlinkArtifactGenerator createFlinkStub() throws Exception {
     // Replace kafka consumer methods with dummy output or do nothing
     FlinkArtifactGenerator flinkStub = new FlinkArtifactGenerator(
       this.settings

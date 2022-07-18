@@ -242,6 +242,7 @@ public class Bootstrap {
               apiKeyForUser
             );
             kafkaShellClient.run(rule);
+            System.out.println(rule);
           } catch (Exception e) {
             context.json(returnError(e.getMessage(), 4005));
             return;
@@ -251,6 +252,7 @@ public class Bootstrap {
               args.environmentId
             );
             kafkaShellClient.run(rule);
+            System.out.println(rule);
           } catch (Exception e) {
             context.json(returnError(e.getMessage(), 4005));
             return;
@@ -258,6 +260,7 @@ public class Bootstrap {
           try {
             String rule = kafkaShellClient.createACLRule(args.environmentId); // Create kafka ACL for environmentId
             kafkaShellClient.run(rule);
+            System.out.println(rule);
           } catch (Exception e) {
             context.json(returnError(e.getMessage(), 4005));
             return;
@@ -271,6 +274,7 @@ public class Bootstrap {
               flinkArtifactGenerator.createSourceTable(
                 args.databaseName,
                 args.tableName,
+                args.fieldName,
                 args.environmentId
               );
 

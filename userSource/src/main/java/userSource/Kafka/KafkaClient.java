@@ -8,6 +8,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 import userSource.Settings.Settings;
 import userSource.Settings.SettingsShape.Stage.StageInstance;
+import userSource.Utils.ApiKey;
 
 public class KafkaClient {
 
@@ -29,12 +30,12 @@ public class KafkaClient {
     this.settings = settings;
   }
 
-  public KafkaConsumer<String, String> create(String environmentId) {
-    // Random group id for client
-    // TODO If there is NOT already an existing client then create a new one
-
-    System.out.println("trying to create consumer");
+  public KafkaConsumer<String, String> create(String environmentId)
+    throws Exception {
     StageInstance stage = this.settings.settings;
+
+    // Ensure each kafka consumer belongs to a new consumer group
+    String randomGroupId = new ApiKey().create();
 
     String login = String.format(
       "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
@@ -47,7 +48,7 @@ public class KafkaClient {
       "bootstrap.servers",
       stage.services.kafka.bootstrap.serversExternal
     );
-    props.put("group.id", this.kafkaUser);
+    props.put("group.id", randomGroupId);
     props.put("key.deserializer", StringDeserializer.class.getName());
     props.put("value.deserializer", StringDeserializer.class.getName());
     props.put("auto.offset.reset", "earliest");

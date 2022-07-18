@@ -44,20 +44,22 @@ public class KafkaShellClient {
         output.append(line + "\n");
       }
 
-      // int exitVal = process.waitFor();
+      int exitVal = process.waitFor();
       System.out.println(output);
-      // if (exitVal != 0) {
-      //   throw new IOException();
-      // }
+      // If output does not contain,
+      if (exitVal != 0) {
+        throw new IOException();
+      }
     } catch (IOException e) {
       throw e;
     }
   }
 
   // TODO dynamically get the name of the container and the path to the kafka bin
+  // Completed updating config for entity
   public String createACLUser(String environmentId, String password) {
     return String.format(
-      "docker exec -u root %s bash -c \"cd %s && kafka-configs.sh --zookeeper %s --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=%s],SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s\"",
+      "docker exec %s bash -c \"cd %s && kafka-configs.sh --zookeeper %s --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=%s],SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s\"",
       this.settings.settings.services.kafka.bootstrap.containerName,
       this.settings.settings.services.kafka.bootstrap.pathToBin,
       this.settings.settings.services.zookeeper.serversInternal,
@@ -71,9 +73,10 @@ public class KafkaShellClient {
    * Add ACL rule for given user and topic. Creates access for all operations on all topics with this prefix
    *
    */
+  // Adding ACLs for resource
   public String createACLRule(String environmentId) {
     return String.format(
-      "docker exec -u root %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED\"",
+      "docker exec %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED\"",
       this.settings.settings.services.kafka.bootstrap.containerName,
       this.settings.settings.services.kafka.bootstrap.pathToBin,
       this.settings.settings.services.zookeeper.serversInternal,
@@ -82,9 +85,10 @@ public class KafkaShellClient {
     );
   }
 
+  // Adding ACLs for resource
   public String createACLRuleConsumer(String environmentId) {
     return String.format(
-      "docker exec -u root %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --group %s\"",
+      "docker exec %s bash -c \"cd %s && kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --group %s\"",
       this.settings.settings.services.kafka.bootstrap.containerName,
       this.settings.settings.services.kafka.bootstrap.pathToBin,
       this.settings.settings.services.zookeeper.serversInternal,
