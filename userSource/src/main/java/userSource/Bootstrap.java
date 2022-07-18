@@ -341,6 +341,13 @@ public class Bootstrap {
       .requestHandler(router)
       // Start listening
       .listen(8888)
+      .onSuccess(
+        server -> {
+          System.out.println(
+            "Application server started on port" + server.actualPort()
+          );
+        }
+      )
       .onFailure(message -> System.out.println(message));
   }
 }

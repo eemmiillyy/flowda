@@ -43,8 +43,10 @@ public class ArgumentValidator {
 
   public boolean validateStringInput(String field, String fieldName)
     throws ValidationError {
-    Pattern alphanumeric = Pattern.compile("^[a-zA-Z0-9]*$");
-    Matcher matcher = alphanumeric.matcher(field);
+    Pattern alphanumericWithDashesAndUnderscores = Pattern.compile(
+      "^[a-zA-Z0-9-_]*$"
+    );
+    Matcher matcher = alphanumericWithDashesAndUnderscores.matcher(field);
     if (!matcher.matches()) {
       throw new ValidationError(
         String.format(
