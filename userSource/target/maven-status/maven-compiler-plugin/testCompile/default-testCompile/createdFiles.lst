@@ -1,5 +1,4 @@
 SettingsTest.class
 ApiKeyTest.class
-CheckJobStatusEndpointTest.class
 CreateConnectionEndpointTest.class
 CreateQueryEndpointTest.class

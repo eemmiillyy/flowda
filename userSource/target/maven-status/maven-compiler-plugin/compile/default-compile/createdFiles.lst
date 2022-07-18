@@ -32,6 +32,5 @@ userSource/Flink/FlinkResponseShape.class
 userSource/Settings/SettingsShape$Stage$StageInstance$Services$Debezium.class
 userSource/Settings/SettingsShape$Stage$StageInstance$Services$Kafka.class
 userSource/Settings/SettingsShape$Stage$StageInstance$Services$Zookeeper.class
-userSource/CheckJobStatusInput.class
 userSource/Debezium/DebeziumResponseShape.class
 userSource/Flink/FlinkClient.class

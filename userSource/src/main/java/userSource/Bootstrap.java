@@ -328,60 +328,6 @@ public class Bootstrap {
           }
         }
       );
-    router
-      .route("/checkJobStatus")
-      .handler(
-        context -> {
-          // Get the query parameter "name"
-          io.vertx.ext.web.RequestBody body = null;
-          try {
-            body = context.body();
-          } catch (Throwable e) {
-            context.json(new JsonObject().put("message", e).put("code", 4000));
-          }
-
-          // Parse arguments into JSON for easier handling in resolver
-          CheckJobStatusInput args = g.fromJson(
-            body.asJsonObject().toString(),
-            CheckJobStatusInput.class
-          );
-
-          // Check args are present
-          // TODO return the error status code
-          Field[] fields = args.getClass().getFields();
-          if (allFieldsPresent(fields, args).status == false) {
-            String message =
-              String.join(
-                ",",
-                allFieldsPresent(fields, args).missingFieldNames
-              ) +
-              " are missing.";
-            context.json(
-              new JsonObject().put("message", message).put("code", 4001)
-            );
-          }
-          FlinkClient flinkClient = new FlinkClient(this.settings);
-
-          try {
-            flinkClient
-              .runJob("", client, "/jobs/" + args.jobId)
-              .onSuccess(
-                response -> {
-                  context.json(new JsonObject().put("name", response.body()));
-                }
-              )
-              .onFailure(
-                error -> {
-                  context.json(
-                    new JsonObject().put("error", "error checking flink job.")
-                  );
-                }
-              );
-          } catch (Throwable e) {
-            context.json(new JsonObject().put("name", e));
-          }
-        }
-      );
 
     return server
       // Handle every request using the router

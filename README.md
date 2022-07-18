@@ -30,8 +30,10 @@ mvn package
 ```bash
 cd userSource
 mvn install
-export SECRET=[secret] STAGE=[stage] && mvn package && unset SECRET STAGE
+export SECRET=[secret] STAGE=[stage] && mvn clean package && unset SECRET STAGE
 ```
+
+**NOTE** stage can be set to `test` here if you would like to run the tests on build (default behavior). If you want to skip tests this value can be `development`.
 
 #### Running the user service .jar
 
@@ -183,30 +185,6 @@ _Response_
   "environmentId": "XXXX",
   "ApiKey": "XXXX",
   "jobId": "XXXX"
-}
-```
-
----
-
-`/checkJobStatus`
-
-Verb: `GET`
-
-Response Code: `200`
-
-Returns the status of the job id passed in via the body.
-
-_Request_
-
-```json
-{ "jobId": "XXXXX" }
-```
-
-_Response_
-
-```json
-{
-  "name": "..."
 }
 ```
 
