@@ -1,7 +1,6 @@
 package userSource;
 
 import java.lang.reflect.Field;
-import java.net.URI;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -13,25 +12,27 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
-import userSource.Debezium.DebeziumArtifactGenerator;
-import userSource.Debezium.DebeziumClient;
-import userSource.Debezium.DebeziumResponseShape;
-import userSource.Flink.FlinkArtifactGenerator;
-import userSource.Flink.FlinkClient;
-import userSource.Flink.FlinkResponseShape;
-import userSource.Kafka.KafkaShellClient;
+import userSource.Connector.ConnectorClient;
+import userSource.Connector.ConnectorResponseType;
+import userSource.Connector.ConnectorSource;
+import userSource.Connector.Kafka.KafkaClient;
+import userSource.Job.JobClient;
+import userSource.Job.JobResponseType;
+import userSource.Job.JobSource;
 import userSource.Settings.Settings;
 import userSource.Utils.ApiKey;
 import userSource.Utils.ArgumentValidator;
+import userSource.Utils.ConnectionStringParser;
+import userSource.Utils.ConnectionStringParser.ConnectionStringParsed;
 
 public class Bootstrap {
 
   public Settings settings;
-  public KafkaShellClient kafkaShellClient;
-  public FlinkArtifactGenerator flinkArtifactGenerator;
-  public DebeziumArtifactGenerator debeziumArtifactGenerator;
-  public FlinkClient flinkClient;
-  public DebeziumClient debeziumClient;
+  public KafkaClient kafkaClient;
+  public JobSource jobSource;
+  public ConnectorSource connectorSource;
+  public JobClient jobClient;
+  public ConnectorClient connectorClient;
   public static WebClient client = WebClient.create(Vertx.vertx());
   io.vertx.core.http.HttpServer server;
   Vertx vertexInstance;
@@ -39,12 +40,11 @@ public class Bootstrap {
 
   public Bootstrap() {
     this.settings = new Settings();
-    this.kafkaShellClient = new KafkaShellClient(this.settings);
-    this.flinkArtifactGenerator = new FlinkArtifactGenerator(this.settings);
-    this.debeziumArtifactGenerator =
-      new DebeziumArtifactGenerator(this.settings);
-    this.flinkClient = new FlinkClient(this.settings);
-    this.debeziumClient = new DebeziumClient(this.settings);
+    this.kafkaClient = new KafkaClient(this.settings);
+    this.jobSource = new JobSource(this.settings);
+    this.connectorSource = new ConnectorSource(this.settings);
+    this.jobClient = new JobClient(this.settings);
+    this.connectorClient = new ConnectorClient(this.settings);
   }
 
   public class AllFieldsPresentOutput {
@@ -133,25 +133,24 @@ public class Bootstrap {
             context.json(returnError(e.getMessage(), 4002));
             return;
           }
-          URI connectionStringFormatted = URI.create(args.connectionString);
-          String formatted = debeziumArtifactGenerator.connectionString(
-            connectionStringFormatted,
+          String formatted = connectorSource.connectionString(
+            args.connectionString,
             args.environmentId
           );
 
           // Create the kafka connector with Debezium REST Client
           try {
-            this.debeziumClient.createConnector(formatted, client)
+            this.connectorClient.createConnector(formatted, client)
               .onSuccess(
                 result -> {
                   context.json(
                     new JsonObject()
                     .put(
                         "data",
-                        result.bodyAsJson(DebeziumResponseShape.class).name !=
+                        result.bodyAsJson(ConnectorResponseType.class).name !=
                           null
-                          ? result.bodyAsJson(DebeziumResponseShape.class).name
-                          : result.bodyAsJson(DebeziumResponseShape.class)
+                          ? result.bodyAsJson(ConnectorResponseType.class).name
+                          : result.bodyAsJson(ConnectorResponseType.class)
                             .message
                       )
                   );
@@ -199,7 +198,6 @@ public class Bootstrap {
                 allFieldsPresent(fields, args).missingFieldNames
               ) +
               " are missing.";
-            System.out.println(message);
             context.json(returnError(message, 4001));
             return;
           }
@@ -217,16 +215,20 @@ public class Bootstrap {
           try {
             ArgumentValidator validator = new ArgumentValidator();
             validator.validateStringInput(args.environmentId, "environmentId");
-            validator.validateStringInput(args.databaseName, "databaseName");
-            validator.validateStringInput(args.tableName, "tableName");
-            validator.validateStringInput(args.fieldName, "fieldName");
+            validator.validateStringInput(args.sourceSql, "sourceSql"); // separate CREATE TABLE validation function
+            validator.validateStringInput(args.querySql, "querySql"); // separate CREATE SELECT validation function
+            validator.validateStringInput(args.sinkSql, "sinkSql"); // separate CREATE TABLE validation function
+            if (args.sourceSqlTableTwo != null) {
+              validator.validateStringInput(
+                args.sourceSqlTableTwo, // separate CREATE TABLE validation function
+                "sourceSqlTableTwo"
+              );
+            }
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4002));
             return;
           }
-
-          // TODO authorisation with JWT to make sure they control the db.
-
+          // TODO make sure they own the database
           ApiKey apiKeyFactory = new ApiKey();
           String apiKeyForUser;
           try {
@@ -236,76 +238,72 @@ public class Bootstrap {
             return;
           }
 
-          try {
-            String rule = kafkaShellClient.createACLUser(
-              args.environmentId,
-              apiKeyForUser
-            );
-            kafkaShellClient.run(rule);
-            System.out.println(rule);
-          } catch (Exception e) {
-            context.json(returnError(e.getMessage(), 4005));
-            return;
-          }
-          try {
-            String rule = kafkaShellClient.createACLRuleConsumer(
-              args.environmentId
-            );
-            kafkaShellClient.run(rule);
-            System.out.println(rule);
-          } catch (Exception e) {
-            context.json(returnError(e.getMessage(), 4005));
-            return;
-          }
-          try {
-            String rule = kafkaShellClient.createACLRule(args.environmentId); // Create kafka ACL for environmentId
-            kafkaShellClient.run(rule);
-            System.out.println(rule);
-          } catch (Exception e) {
-            context.json(returnError(e.getMessage(), 4005));
-            return;
-          }
-
           // TODO delete ACL updates if there was an error
 
-          String sourceString;
+          // Grab database name from connection string
+          ConnectionStringParsed connectionInfo = new ConnectionStringParser()
+          .parse(args.connectionString);
+
+          String formattedSourceSql;
+          String formattedSourceSqlTwo = null;
           try {
-            sourceString =
-              flinkArtifactGenerator.createSourceTable(
-                args.databaseName,
-                args.tableName,
-                args.fieldName,
-                args.environmentId
+            // Grab tablename
+            String tableName = jobSource.extractTableNameFromCreateStatement(
+              args.sourceSql
+            );
+            formattedSourceSql =
+              jobSource.appendKafkaConnectionInfo(
+                false,
+                args.sourceSql,
+                connectionInfo.dbName,
+                args.environmentId,
+                tableName
               );
 
-            System.out.println(sourceString);
+            if (args.sourceSqlTableTwo != null) {
+              // Grab tablename
+              String tableNameTwo = jobSource.extractTableNameFromCreateStatement(
+                args.sourceSqlTableTwo
+              );
+              formattedSourceSqlTwo =
+                jobSource.appendKafkaConnectionInfo(
+                  false,
+                  args.sourceSqlTableTwo,
+                  connectionInfo.dbName,
+                  args.environmentId,
+                  tableNameTwo
+                );
+            }
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4006));
             return;
           }
 
-          String agreggateString = flinkArtifactGenerator.createAgreggateQuery(
-            args.tableName,
-            args.fieldName
+          // Extract aggregate query table name
+          String sinkTableName = jobSource.extractTableNameFromCreateStatement(
+            args.sinkSql
           );
-
-          String sinkString = flinkArtifactGenerator.createSinkTable(
-            args.databaseName,
-            args.tableName,
-            args.environmentId
+          String sinkString = jobSource.appendKafkaConnectionInfo(
+            true,
+            args.sinkSql,
+            connectionInfo.dbName,
+            args.environmentId,
+            sinkTableName
           );
 
           // The field to sum needs to be an integer.
           String validJSON = String.format(
-            "{\"programArgsList\" : [\"--source\",\"%s\",\"--query\", \"%s\",\"--sink\",\"%s\",\"--table\",\"%s\"],\"parallelism\": 1}",
-            sourceString,
-            agreggateString,
+            "{\"programArgsList\" : [\"--source\",\"%s\", \"--sourceTwo\",\"%s\",\"--query\", \"%s\",\"--sink\",\"%s\",\"--table\",\"%s\"],\"parallelism\": 1}",
+            formattedSourceSql,
+            formattedSourceSqlTwo,
+            args.querySql,
             sinkString,
-            args.tableName
+            sinkTableName
           );
 
+          System.out.println(validJSON);
           try {
-            flinkClient
+            jobClient
               .runJob(
                 validJSON,
                 client,
@@ -313,18 +311,35 @@ public class Bootstrap {
               )
               .onSuccess(
                 response -> {
-                  System.out.println(response.body());
+                  io.vertx.core.json.JsonObject res = new JsonObject()
+                    .put("name", "successfully started Flink job.")
+                    .put("environmentId", args.environmentId)
+                    .put("apiKey", apiKeyForUser)
+                    .put(
+                      "jobId",
+                      response.bodyAsJson(JobResponseType.class).jobid
+                    );
 
-                  context.json(
-                    new JsonObject()
-                      .put("name", "successfully started Flink job.")
-                      .put("environmentId", args.environmentId)
-                      .put("apiKey", apiKeyForUser)
-                      .put(
-                        "jobId",
-                        response.bodyAsJson(FlinkResponseShape.class).jobid
-                      )
-                  );
+                  // If all was successful then add permissions
+                  if (
+                    response.bodyAsJson(JobResponseType.class).jobid != null
+                  ) {
+                    try {
+                      String rule = kafkaClient.createPermissions(
+                        args.environmentId,
+                        apiKeyForUser
+                      );
+                      kafkaClient.run(rule);
+                    } catch (Exception e) {
+                      context.json(returnError(e.getMessage(), 4005));
+                      return;
+                    }
+                    context.json(res);
+                  } else {
+                    context.json(
+                      returnError("Issue launching generated flink job", 4007)
+                    );
+                  }
                 }
               )
               .onFailure(

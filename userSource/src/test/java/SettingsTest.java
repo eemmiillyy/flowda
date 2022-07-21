@@ -13,8 +13,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import userSource.Settings.Settings;
-import userSource.Settings.SettingsShape;
-import userSource.Settings.SettingsShape.Stage.StageInstance;
+import userSource.Settings.SettingsType;
+import userSource.Settings.SettingsType.Stage.StageInstance;
 
 public class SettingsTest {
 
@@ -35,7 +35,7 @@ public class SettingsTest {
   public void testICanEncryptTheFile() throws IOException {
     JsonObject settings = spy.encrypt();
     StageInstance s = new Gson()
-    .fromJson(settings, SettingsShape.Stage.StageInstance.class);
+    .fromJson(settings, SettingsType.Stage.StageInstance.class);
     assertEquals(s.services.kafka.admin.$$password, encryptedPassword);
   }
 
@@ -43,12 +43,12 @@ public class SettingsTest {
   public void testICanDecryptTheFile() throws IOException {
     JsonObject settings = spy.encrypt();
     StageInstance s = new Gson()
-    .fromJson(settings, SettingsShape.Stage.StageInstance.class);
+    .fromJson(settings, SettingsType.Stage.StageInstance.class);
     spy.settings = s;
 
     JsonObject decrypted = spy.decrypt();
     StageInstance decryptedSettings = new Gson()
-    .fromJson(decrypted, SettingsShape.Stage.StageInstance.class);
+    .fromJson(decrypted, SettingsType.Stage.StageInstance.class);
     assertEquals(
       decryptedSettings.services.kafka.admin.$$password,
       plaintextPassword

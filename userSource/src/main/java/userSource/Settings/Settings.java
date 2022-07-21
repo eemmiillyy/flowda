@@ -26,7 +26,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 
-import userSource.Settings.SettingsShape.Stage.StageInstance;
+import userSource.Settings.SettingsType.Stage.StageInstance;
 
 public class Settings {
 
@@ -90,7 +90,7 @@ public class Settings {
    * Load file into memory. Automatically called in contsructor.
    * @throws IOException
    */
-  public SettingsShape.Stage.StageInstance load(String stage, String fileName)
+  public SettingsType.Stage.StageInstance load(String stage, String fileName)
     throws IOException {
     Path p = Paths.get(fileName);
     InputStream inputStream = Files.newInputStream(p);
@@ -98,7 +98,7 @@ public class Settings {
 
     reader.beginArray();
     while (reader.hasNext()) {
-      SettingsShape s = new Gson().fromJson(reader, SettingsShape.class);
+      SettingsType s = new Gson().fromJson(reader, SettingsType.class);
       System.out.println(stage + " from settings");
       switch (stage) {
         case "production":

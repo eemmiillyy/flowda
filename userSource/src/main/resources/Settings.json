@@ -53,7 +53,7 @@
           },
           "flink": {
             "servers": "http://localhost:8081",
-            "jar": "/jars/eeda6564-e20b-43c7-9c50-ba79748b596d_processingSource-1.0-SNAPSHOT.jar/run"
+            "jar": "/jars/91b1754e-2517-48f1-b9ba-092d1620bd58_processingSource-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
             "containerName": "pdpdataprojections_connect_1",

@@ -158,22 +158,19 @@ Verb: `POST`
 
 Response Code: `200`
 
-Creates a Flink job that runs an aggregate sum query on the given
-table name and given column. Publishes the output to the same
-kafka cluster under the environmentId.dbName.tableName.fieldName_output topic. Fieldname is not validated.
-Requires a JWT cookie.
-Returns an access token that will be the users password for the kafka ACL for
-the topic.
+Launches a flink job with the given source, aggregate, and sink table. The result of the aggregate will stream to the environmentId.dbName.outputTableName topic. db name inferred from connection string. tablename will be inferred from source statement. agreggateSql tablename needs to match the source. output table name will be inferred from the sink statement. Returns an access token that will be the users password for the kafka ACL for
+the topic. DO NOT add semi colons to end of the input
 
 _Request_
 
 ```json
 {
-  "connectionString": "mysql://user:pass@mysql:3306/dbname", // Will be removed
-  "environmentId": "uniqueIdToUSeAsKafkaTopic", // Will be removed
-  "databaseName": "dbname",
-  "tableName": "tableName",
-  "fieldName": "fieldName"
+  "connectionString": "mysql://user:pass@mysql:3306/inventory",
+  "environmentId": "eee",
+  "sourceSql": "CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)",
+  "sourceSqlTableTwo": "CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)",
+  "querySql": "SELECT SUM(quantity) as summed FROM products_on_hand",
+  "sinkSql": "CREATE TABLE custom_output_table_name (summed INT)"
 }
 ```
 
@@ -187,6 +184,23 @@ _Response_
   "jobId": "XXXX"
 }
 ```
+
+CREATE TABLE orders (order_number BIGINT,purchaser BIGINT,quantity BIGINT,product_id BIGINT,event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND);
+
+source:
+CREATE TABLE real_table_name (quantity INT, product_id INT);"
+add
+event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND) WITH ('connector' = 'kafka','topic' = 'ENVIRONMENT.DBNAME.TABLENAME','properties.bootstrap.servers' = 'localhost:9093','properties.group.id' = '1391083','debezium-json.schema-include' = 'true', 'scan.startup.mode' = 'earliest-offset','format' = 'debezium-json')
+
+aggregateSql
+"SELECT SUM(quantity) as summed FROM real_table_name;"
+
+sink
+"CREATE TABLE custom_table_name (summed INT);"
+add
+WITH ('connector' = 'kafka','topic' = 'ENVIRONMENT.DATABASE.TABLENAME_OUTPUT','properties.bootstrap.servers' = 'localhost:9093','format' = 'debezium-json')
+
+CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND ) WITH ( 'connector' = 'kafka','topic' = 'tuesdayeight.inventory.products_on_hand', 'properties.bootstrap.servers' = 'localhost:9093', 'properties.group.id' = 'tuesdayeight', 'properties.sasl.mechanism' = 'SCRAM-SHA-256', 'properties.security.protocol' = 'SASL_PLAINTEXT', 'properties.sasl.jaas.config' = 'org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;', 'debezium-json.schema-include' = 'true', 'scan.startup.mode' = 'earliest-offset', 'format' = 'debezium-json')
 
 ## Error Codes
 
