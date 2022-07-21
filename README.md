@@ -20,15 +20,15 @@ cd bin
 #### Build user service
 
 ```bash
-cd processingSource
+cd flink-flow-job
 mvn install
-mvn package
+export SECRET=Chv1ocZ74xL9fl4hcJRfEvt6ZHmF6KlS1P6cDQBFdmjXOlwBJK0EAiYR1bdyzxVH STAGE=development && mvn -DskipTests=true clean package
 ```
 
 **NOTE** We must manually upload the packaged .jar file from these steps to flink via the UI and retrieve it's job id. After that `Settings.json` jar file path needs to be updated.
 
 ```bash
-cd userSource
+cd flow-core
 mvn install
 export SECRET=[secret] STAGE=[stage] && mvn clean package && unset SECRET STAGE
 ```
@@ -38,7 +38,7 @@ export SECRET=[secret] STAGE=[stage] && mvn clean package && unset SECRET STAGE
 #### Running the user service .jar
 
 ```bash
-SECRET=[secret] STAGE=[stage] java -jar target/userSource-1.0-SNAPSHOT.jar
+SECRET=[secret] STAGE=[stage] java -jar target/flow.core-1.0-SNAPSHOT.jar
 ```
 
 **NOTE** To kill java processes
@@ -94,7 +94,7 @@ Inside `/opt/bitnami/kafka/bin`
 
 ```bash
 export SECRET=[secret] STAGE=development && mvn package -Dmaven.test.skip && unset SECRET STAGE
-SECRET=[secret] STAGE=development java -jar target/userSource-1.0-SNAPSHOT.jar
+SECRET=[secret] STAGE=development java -jar target/flow.core-1.0-SNAPSHOT.jar
 ```
 
 **NOTE** Decryption will fail during this since it will try to decrypt the plaintext which will throw an error. That is expected.
@@ -108,7 +108,7 @@ SECRET=[secret] STAGE=development java -jar target/userSource-1.0-SNAPSHOT.jar
 4. Make sure it works with
 
 ```bash
-SECRET=[secret] STAGE=development java -jar target/userSource-1.0-SNAPSHOT.jar
+SECRET=[secret] STAGE=development java -jar target/flow.core-1.0-SNAPSHOT.jar
 ```
 
 Then undo changes to server and re run with new secret.
@@ -248,4 +248,4 @@ kafka-topics.sh --create --bootstrap-server kafka:9092 --topic newtopicbanned --
 
 READ TOPIC FROM DEFAULT USER
 
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -L
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=eee -X sasl.password=xSsTmp5jeyeqLiSkjiAcsZ3MiY7PpH6q1Wtl+r0E1EQ= -L

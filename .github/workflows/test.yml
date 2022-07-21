@@ -19,14 +19,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ hashFiles('userSource/pom.xml') }}
+          key: ${{ hashFiles('flow-core/pom.xml') }}
           restore-keys: |
-            ${{ hashFiles('userSource/pom.xml') }}
+            ${{ hashFiles('flow-core/pom.xml') }}
 
       - name: Download dependencies
         if: steps.maven-cache.outputs.cache-hit != 'true'
         run: >
-          cd userSource &&
+          cd flow-core &&
           mvn clean install
           -DskipTests=true
 
@@ -36,5 +36,5 @@ jobs:
           SECRET: ${{ secrets.SECRET }}
           STAGE: test
         run: >
-          cd ./userSource && 
+          cd ./flow-core && 
           mvn clean package

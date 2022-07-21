@@ -1,0 +1,17 @@
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Connector/ConnectorResponseType.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Settings/SettingsType.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Utils/ArgumentValidator.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/CreateConnectionInput.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Utils/ApiKey.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Job/JobResponseType.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Bootstrap.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Settings/Settings.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Utils/ConnectionStringParser.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/ClientError.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Job/JobSource.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Job/JobClient.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Server.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/CreateQueryInput.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Connector/ConnectorSource.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Connector/Kafka/KafkaClient.java
+/Users/emilymorgan/Desktop/pdpDataProjections/flow-core/src/main/java/flow/core/Connector/ConnectorClient.java
