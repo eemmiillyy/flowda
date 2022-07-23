@@ -1,6 +1,6 @@
 package flow.core;
 
-public class CreateQueryInput {
+public class CreateQueryInputType {
 
   public String connectionString;
   public String environmentId;

@@ -1,6 +1,7 @@
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
@@ -14,6 +15,8 @@ import flow.core.Bootstrap;
 import flow.core.Connector.Kafka.KafkaClient;
 import flow.core.Job.JobSource;
 import flow.core.Settings.Settings;
+import flow.core.Utils.ConnectionChecker;
+import flow.core.Utils.ConnectionChecker.AccessDeniedError;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -27,23 +30,33 @@ import io.vertx.junit5.VertxTestContext;
 @ExtendWith(VertxExtension.class)
 public class CreateQueryEndpointTest {
 
-  static String stage = "test";
+  Bootstrap mockedAppServer;
+  ConnectionChecker connectionCheckerStub;
+  Future<HttpServer> mockServerFlink;
+  Future<HttpServer> futureApp;
+  HttpServer mockServerFlinkBeforeInit;
+  Settings settings = new Settings();
   Vertx vertx = Vertx.vertx();
   VertxTestContext testContext;
-  HttpServer mockServerFlinkBeforeInit;
-  Future<HttpServer> mockServerFlink;
-  String matcher = "tester";
-  Settings settings = new Settings();
-  Bootstrap mockedAppServer;
-  Future<HttpServer> futureApp;
 
   @BeforeEach
   public void setup(TestInfo testInfo) throws Exception {
     this.testContext = new VertxTestContext();
+    stubConnectionChecker();
     startFlinkServerMock();
     JobSource flinkStub = createFlinkStub();
     KafkaClient kafkaShellStub = createKafkaShellStub();
     launchAppWithTestSettings(kafkaShellStub, flinkStub);
+  }
+
+  public void stubConnectionChecker()
+    throws AccessDeniedError, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
+    ConnectionChecker checkConn = new ConnectionChecker();
+    this.connectionCheckerStub = Mockito.spy(checkConn);
+    Mockito
+      .doReturn(true)
+      .when(connectionCheckerStub)
+      .canConnect(Mockito.any());
   }
 
   public JobSource createFlinkStub() throws Exception {
@@ -70,8 +83,10 @@ public class CreateQueryEndpointTest {
     throws IOException, InterruptedException {
     Bootstrap bootstrap = new Bootstrap();
     this.mockedAppServer = Mockito.spy(bootstrap);
-    mockedAppServer.kafkaClient = kafkaShellStub;
-    mockedAppServer.jobSource = flinkStub;
+    this.mockedAppServer.connectionChecker = this.connectionCheckerStub;
+    this.mockedAppServer.kafkaClient = kafkaShellStub;
+    this.mockedAppServer.jobSource = flinkStub;
+    this.futureApp = this.mockedAppServer.start();
   }
 
   public void startFlinkServerMock() {
@@ -101,13 +116,8 @@ public class CreateQueryEndpointTest {
     this.mockedAppServer.close();
   }
 
-  // // TODO MOVE
-  public void runTestQuery(String input, String output)
-    throws InterruptedException {
-    System.out.println("RUNNING TEST QUERY");
-
-    this.mockedAppServer.start()
-      .onSuccess(
+  public void runTest(String input, String output) throws InterruptedException {
+    this.futureApp.onSuccess(
         app -> {
           System.out.println("APP UP" + app);
           this.mockServerFlink.onSuccess(
@@ -139,7 +149,6 @@ public class CreateQueryEndpointTest {
     try {
       testContext.awaitCompletion(20, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     assertTrue(testContext.completed() == true);
@@ -148,7 +157,7 @@ public class CreateQueryEndpointTest {
   @Test
   public void testSucceedsWithValidArugmentsQuery()
     throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "\"jobId\":\"mockJobId\""
     );
@@ -157,7 +166,7 @@ public class CreateQueryEndpointTest {
   @Test
   public void testThrowsWithMissingEnvironmentIdQuery()
     throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "{\"message\":\"environmentId are missing.\",\"code\":4001}"
     );
@@ -166,7 +175,7 @@ public class CreateQueryEndpointTest {
   @Test
   public void testThrowsWithMissingConnectionStringQuery()
     throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "{\"message\":\"connectionString are missing.\",\"code\":4001}"
     );
@@ -175,7 +184,7 @@ public class CreateQueryEndpointTest {
   @Test
   public void testThrowsWithMissingSourceSqlQuery()
     throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\", \"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "{\"message\":\"sourceSql are missing.\",\"code\":4001}"
     );
@@ -184,7 +193,7 @@ public class CreateQueryEndpointTest {
   @Test
   public void testThrowsWithMissingSourceSqlTableTwoQuery()
     throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "{\"message\":\"sourceSqlTableTwo are missing.\",\"code\":4001}"
     );
@@ -192,7 +201,7 @@ public class CreateQueryEndpointTest {
 
   @Test
   public void testThrowsWithMissingQuerySql() throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "{\"message\":\"querySql are missing.\",\"code\":4001}"
     );
@@ -200,7 +209,7 @@ public class CreateQueryEndpointTest {
 
   @Test
   public void testThrowsWithMissingSinkSqlQuery() throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\" }",
       "{\"message\":\"sinkSql are missing.\",\"code\":4001}"
     );
@@ -208,7 +217,7 @@ public class CreateQueryEndpointTest {
 
   @Test
   public void testThrowsWithMissingArguments() throws InterruptedException {
-    runTestQuery(
+    runTest(
       "{}",
       "{\"message\":\"connectionString,environmentId,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}"
     );

@@ -1,6 +1,7 @@
 package flow.core;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -15,6 +16,7 @@ import flow.core.Job.JobSource;
 import flow.core.Settings.Settings;
 import flow.core.Utils.ApiKey;
 import flow.core.Utils.ArgumentValidator;
+import flow.core.Utils.ConnectionChecker;
 import flow.core.Utils.ConnectionStringParser;
 import flow.core.Utils.ConnectionStringParser.ConnectionStringParsed;
 import io.vertx.core.Future;
@@ -33,6 +35,7 @@ public class Bootstrap {
   public ConnectorSource connectorSource;
   public JobClient jobClient;
   public ConnectorClient connectorClient;
+  public ConnectionChecker connectionChecker;
   public static WebClient client = WebClient.create(Vertx.vertx());
   io.vertx.core.http.HttpServer server;
   Vertx vertexInstance;
@@ -45,6 +48,7 @@ public class Bootstrap {
     this.connectorSource = new ConnectorSource(this.settings);
     this.jobClient = new JobClient(this.settings);
     this.connectorClient = new ConnectorClient(this.settings);
+    this.connectionChecker = new ConnectionChecker();
   }
 
   public class AllFieldsPresentOutput {
@@ -99,9 +103,9 @@ public class Bootstrap {
           }
 
           // Parse arguments into JSON for easier handling in resolver
-          CreateConnectionInput args = g.fromJson(
+          CreateConnectionInputType args = g.fromJson(
             body.asJsonObject().toString(),
-            CreateConnectionInput.class
+            CreateConnectionInputType.class
           );
 
           // Check args are present
@@ -137,6 +141,20 @@ public class Bootstrap {
             args.connectionString,
             args.environmentId
           );
+
+          // Check that the user actually has a valid connection string and root access
+          try {
+            this.connectionChecker.canConnect(args.connectionString);
+          } catch (RuntimeException e) {
+            context.json(returnError(e.getMessage(), 4009));
+            return;
+          } catch (SQLException e) {
+            context.json(returnError(e.getMessage(), 4009));
+            return;
+          } catch (Throwable e) {
+            context.json(returnError(e.getMessage(), 4009));
+            return;
+          }
 
           // Create the kafka connector with Debezium REST Client
           try {
@@ -185,9 +203,9 @@ public class Bootstrap {
             return;
           }
           // Parse arguments into JSON for easier handling in resolver
-          CreateQueryInput args = g.fromJson(
+          CreateQueryInputType args = g.fromJson(
             body.asJsonObject().toString(),
-            CreateQueryInput.class
+            CreateQueryInputType.class
           );
 
           Field[] fields = args.getClass().getFields();
@@ -228,6 +246,21 @@ public class Bootstrap {
             context.json(returnError(e.getMessage(), 4002));
             return;
           }
+
+          // Check that the user actually has a valid connection string and root access
+          try {
+            this.connectionChecker.canConnect(args.connectionString);
+          } catch (RuntimeException e) {
+            context.json(returnError(e.getMessage(), 4009));
+            return;
+          } catch (SQLException e) {
+            context.json(returnError(e.getMessage(), 4009));
+            return;
+          } catch (Throwable e) {
+            context.json(returnError(e.getMessage(), 4009));
+            return;
+          }
+
           // TODO make sure they own the database
           ApiKey apiKeyFactory = new ApiKey();
           String apiKeyForUser;

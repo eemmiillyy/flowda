@@ -35,10 +35,10 @@ export SECRET=[secret] STAGE=[stage] && mvn clean package && unset SECRET STAGE
 
 **NOTE** stage can be set to `test` here if you would like to run the tests on build (default behavior). If you want to skip tests this value can be `development`.
 
-#### Running the user service .jar
+#### Running the user service .jar (Ensure envs are set first)
 
 ```bash
-SECRET=[secret] STAGE=[stage] java -jar target/flow.core-1.0-SNAPSHOT.jar
+java -jar target/flow.core-1.0-SNAPSHOT.jar
 ```
 
 **NOTE** To kill java processes
@@ -53,7 +53,8 @@ kill -9 [PID]
 1. Open a bash shell in the docker container
 
 ```bash
-docker exec -u root -it pdpdataprojections_kafka_1 bash
+docker exec -u root -it flowda_kafka_1 bash
+
 ```
 
 Inside `/opt/bitnami/kafka/bin`
@@ -123,6 +124,11 @@ Run a single test
 
 Run a single test method
 `mvn -Dtest=AppTest#methodname test`
+
+## Running Benchmarks
+
+`cd flow-benchmarks`
+`java -jar target/benchmarks.jar`
 
 ## API Reference
 
@@ -213,6 +219,7 @@ CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAM
 `4006`: Flink artefact generation issue. May be the result of faulty kafka connection.
 `4007`: Issue running generated Flink job
 `4008`: Unexpected/unhandled error during request
+`4009`: Issue connecting to the database. Bad connection string or privileges.
 
 ## Debug
 
@@ -221,7 +228,7 @@ DATABASE_URL='mysql://byasxa4qr50u:pscale_pw_22gILJ5eVrzho1dlsFGACX2-rXtiXOx2-Ck
 curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "planetscale", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "43cu7juzawsn.us-east-4.psdb.cloud", "database.port": "3306", "database.user": "byasxa4qr50u", "database.password": "pscale_pw_22gILJ5eVrzho1dlsFGACX2-rXtiXOx2-Ck7vgd8CBI", "database.server.id": "184056", "database.server.name": "planetscale", "database.include.list": "tester", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.planetscale", "database.allowPublicKeyRetrieval":"true", "database.ssl.mode": "preferred", "snapshot.locking.mode": "none" } }'
 
 DEBEZIUM CONNECTOR (to monitor mysql binlog, tutorial configured for one topic and one replica)
-curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "inventory-connector", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "mysql", "database.port": "3306", "database.user": "debezium", "database.password": "dbz", "database.server.id": "184054", "database.server.name": "dbserver1", "database.include.list": "inventory", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.inventory" } }'
+curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "inventory-connector", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "mysql", "database.port": "3306", "database.user": "root", "database.password": "debezium", "database.server.id": "22", "database.server.name": "inventory", "database.include.list": "inventory", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.inventory" } }'
 
 VEIRFY DEBEZIUM CONNECTOR
 curl -H "Accept:application/json" localhost:8083/connectors/
@@ -248,4 +255,4 @@ kafka-topics.sh --create --bootstrap-server kafka:9092 --topic newtopicbanned --
 
 READ TOPIC FROM DEFAULT USER
 
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=eee -X sasl.password=xSsTmp5jeyeqLiSkjiAcsZ3MiY7PpH6q1Wtl+r0E1EQ= -L
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=ddii -X sasl.password=5kzDeeciCmg68NtgNWCcG4izH5U2AUmoTGcKO9u1hFk= -L

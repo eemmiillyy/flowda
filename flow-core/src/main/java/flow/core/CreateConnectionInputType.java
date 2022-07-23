@@ -1,6 +1,6 @@
 package flow.core;
 
-public class CreateConnectionInput {
+public class CreateConnectionInputType {
 
   public String connectionString;
   public String environmentId;

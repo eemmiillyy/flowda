@@ -1,7 +1,20 @@
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+
 import flow.core.Bootstrap;
 import flow.core.Settings.Settings;
+import flow.core.Utils.ConnectionChecker;
+import flow.core.Utils.ConnectionChecker.AccessDeniedError;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -11,42 +24,45 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 
 @ExtendWith(VertxExtension.class)
 public class CreateConnectionEndpointTest {
 
-  static String stage = "test";
+  Bootstrap mockedAppServer;
+  ConnectionChecker connectionCheckerStub;
+  Future<HttpServer> futureApp;
+  Future<HttpServer> mockServerFlink;
+  Future<HttpServer> mockServerDebezium;
+  HttpServer mockServerDebeziumBeforeInit;
+  HttpServer mockServerFlinkBeforeInit;
+  Settings settings = new Settings();
   Vertx vertx = Vertx.vertx();
   VertxTestContext testContext;
-  HttpServer mockServerDebeziumBeforeInit;
-  io.vertx.core.Future<HttpServer> mockServerDebezium;
-  HttpServer mockServerFlinkBeforeInit;
-  Future<HttpServer> mockServerFlink;
-  String matcher = "tester";
-  Settings settings = new Settings();
-  Bootstrap mockedAppServer;
-  io.vertx.core.Future<HttpServer> futureApp;
 
   @BeforeEach
   public void setup(TestInfo testInfo)
-    throws IOException, InterruptedException {
+    throws IOException, InterruptedException, AccessDeniedError, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
     this.testContext = new VertxTestContext();
+    stubConnectionChecker();
     startDebeziumServerMock();
     launchAppWithTestSettings();
+  }
+
+  public void stubConnectionChecker()
+    throws AccessDeniedError, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
+    ConnectionChecker checkConn = new ConnectionChecker();
+    this.connectionCheckerStub = Mockito.spy(checkConn);
+    Mockito
+      .doReturn(true)
+      .when(connectionCheckerStub)
+      .canConnect(Mockito.any());
   }
 
   public void launchAppWithTestSettings()
     throws IOException, InterruptedException {
     Bootstrap bootstrap = new Bootstrap();
     this.mockedAppServer = Mockito.spy(bootstrap);
+    this.mockedAppServer.connectionChecker = this.connectionCheckerStub;
     this.futureApp = this.mockedAppServer.start();
   }
 
@@ -110,7 +126,6 @@ public class CreateConnectionEndpointTest {
     try {
       testContext.awaitCompletion(20, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     assertTrue(testContext.completed() == true);
