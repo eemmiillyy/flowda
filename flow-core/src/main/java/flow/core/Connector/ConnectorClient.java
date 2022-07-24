@@ -1,17 +1,17 @@
 package flow.core.Connector;
 
+import java.net.URI;
+
 import flow.core.Settings.Settings;
-import flow.core.Settings.SettingsType.Stage.StageInstance;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
-import java.net.URI;
 
 public class ConnectorClient {
 
-  Settings settings;
+  private Settings settings;
 
   public ConnectorClient(Settings settings) {
     this.settings = settings;
@@ -22,13 +22,12 @@ public class ConnectorClient {
     WebClient client
   )
     throws Throwable {
-    StageInstance stage = settings.settings;
-    URI uri = URI.create(stage.services.debezium.servers);
+    URI uri = URI.create(this.settings.settings.services.debezium.servers);
     String host = uri.getHost();
     Integer port = uri.getPort();
     Future<HttpResponse<Buffer>> res = client
       .post(port, host, "/connectors")
-      .timeout(3000)
+      .timeout(6000)
       .sendJsonObject(new JsonObject(arg));
     return res;
   }

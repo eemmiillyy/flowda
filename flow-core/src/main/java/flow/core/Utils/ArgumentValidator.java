@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import flow.core.Settings.Settings;
+
 public class ArgumentValidator {
 
   public class ValidationError extends RuntimeException {
@@ -14,6 +16,11 @@ public class ArgumentValidator {
   }
 
   public final int MAX_STRING_LENGTH = 256;
+  private Settings settings;
+
+  public ArgumentValidator(Settings settings) {
+    this.settings = settings;
+  }
 
   public boolean validateConnectionString(String connectionString)
     throws ValidationError {
@@ -60,6 +67,28 @@ public class ArgumentValidator {
         String.format(
           "VALIDATION EXCEPTION: %s must be under 256 characters",
           fieldName
+        )
+      );
+    }
+    return true;
+  }
+
+  /**
+   * The environment id is the same user for kafka,
+   * and we want to make sure they cannot escalate their privileges
+   * by submitting the same environment id as the admin user from settings.
+   */
+  public boolean validateEnvironmentId(String environmentId) {
+    Pattern rootUserName = Pattern.compile(
+      String.format("^[%s]*$", this.settings.settings.services.kafka.admin.user)
+    );
+    Matcher matcher = rootUserName.matcher(environmentId);
+    if (matcher.matches()) {
+      // Don't want to give away too much information about the username
+      throw new ValidationError(
+        String.format(
+          "VALIDATION EXCEPTION:Environment id %s is taken.",
+          environmentId
         )
       );
     }

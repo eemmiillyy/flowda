@@ -30,8 +30,6 @@ import flow.core.Settings.SettingsType.Stage.StageInstance;
 
 public class Settings {
 
-  // TODO inject env variable password
-
   Pattern doubleDollarSignPattern = Pattern.compile("^\\$\\$[A-Za-z0-9]+");
 
   public StageInstance settings;

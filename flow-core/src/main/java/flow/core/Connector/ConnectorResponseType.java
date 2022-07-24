@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class ConnectorResponseType {
 
   public String name;
-
   public Config config;
   public String error_code;
   public String message;

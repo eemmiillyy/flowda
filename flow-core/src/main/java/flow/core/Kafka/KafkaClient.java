@@ -1,4 +1,4 @@
-package flow.core.Connector.Kafka;
+package flow.core.Kafka;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,12 +6,6 @@ import java.io.InputStreamReader;
 
 import flow.core.Settings.Settings;
 
-/**
- * Requires knowing the name of the docker container kafka is running in ahead of time.
- * docker exec pdpdataprojections_kafka_1 bash -c "ls -la" for individual commands
- * docker exec -i pdpdataprojections_kafka_1 bash < src/main/java/flow.core/testscript.sh to execute a local script
- * Configs are under /opt/bitnami/kafka in bitnami
- */
 public class KafkaClient {
 
   /*
@@ -19,13 +13,14 @@ public class KafkaClient {
    * Assumes this service and kafka are running on the same host machine with kafka runnning in docker.
    *
    */
-  Settings settings;
+  private Settings settings;
 
   public KafkaClient(Settings settings) {
     this.settings = settings;
   }
 
-  public void run(String command) throws IOException, InterruptedException {
+  public void modifyACL(String command)
+    throws IOException, InterruptedException {
     ProcessBuilder processBuilder = new ProcessBuilder();
 
     try {
@@ -46,7 +41,6 @@ public class KafkaClient {
 
       int exitVal = process.waitFor();
       System.out.println(output);
-      // If output does not contain,
       if (exitVal != 0) {
         throw new IOException();
       }
@@ -55,8 +49,6 @@ public class KafkaClient {
     }
   }
 
-  // TODO dynamically get the name of the container and the path to the kafka bin
-  // Completed updating config for entity
   public String createPermissions(String environmentId, String password) {
     String kafkaUser = createKafkaUser(environmentId, password);
     String topicAccess = createTopicAccess(environmentId);
@@ -82,11 +74,6 @@ public class KafkaClient {
     );
   }
 
-  /**
-   * Add ACL rule for given user and topic. Creates access for all operations on all topics with this prefix
-   *
-   */
-  // Adding ACLs for resource
   public String createTopicAccess(String environmentId) {
     return String.format(
       "kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED",
@@ -96,7 +83,6 @@ public class KafkaClient {
     );
   }
 
-  // Adding ACLs for resource
   public String createGroupAccess(String environmentId) {
     return String.format(
       "kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --group %s",

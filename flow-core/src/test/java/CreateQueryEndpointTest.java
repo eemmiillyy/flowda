@@ -1,9 +1,12 @@
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,11 +15,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import flow.core.Bootstrap;
-import flow.core.Connector.Kafka.KafkaClient;
 import flow.core.Job.JobSource;
+import flow.core.Kafka.KafkaClient;
 import flow.core.Settings.Settings;
 import flow.core.Utils.ConnectionChecker;
 import flow.core.Utils.ConnectionChecker.AccessDeniedError;
+import flow.core.Utils.JWT;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -72,7 +76,7 @@ public class CreateQueryEndpointTest {
     KafkaClient kafkaShellClient = new KafkaClient(this.settings);
     KafkaClient kafkaShellClientSpy = Mockito.spy(kafkaShellClient);
     // Do not actually run ACLs
-    Mockito.doNothing().when(kafkaShellClientSpy).run(Mockito.any());
+    Mockito.doNothing().when(kafkaShellClientSpy).modifyACL(Mockito.any());
     return kafkaShellClientSpy;
   }
 
@@ -126,8 +130,20 @@ public class CreateQueryEndpointTest {
                   "Mock server started on port" + server.actualPort()
                 );
                 WebClient client = WebClient.create(vertx);
+                String testJWT = "";
+                try {
+                  testJWT = new JWT().create("tester");
+                } catch (
+                  InvalidKeyException
+                  | NoSuchAlgorithmException
+                  | JSONException e
+                ) {
+                  // TODO Auto-generated catch block
+                  e.printStackTrace();
+                }
                 client
                   .post(8888, "localhost", "/createQuery")
+                  .bearerTokenAuthentication(testJWT)
                   .sendJsonObject(new JsonObject(input))
                   .onComplete(
                     testContext.succeeding(
@@ -160,15 +176,6 @@ public class CreateQueryEndpointTest {
     runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
       "\"jobId\":\"mockJobId\""
-    );
-  }
-
-  @Test
-  public void testThrowsWithMissingEnvironmentIdQuery()
-    throws InterruptedException {
-    runTest(
-      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"environmentId are missing.\",\"code\":4001}"
     );
   }
 
@@ -219,7 +226,7 @@ public class CreateQueryEndpointTest {
   public void testThrowsWithMissingArguments() throws InterruptedException {
     runTest(
       "{}",
-      "{\"message\":\"connectionString,environmentId,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}"
+      "{\"message\":\"connectionString,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}"
     );
   }
 }

@@ -139,7 +139,7 @@ Verb: `POST`
 Response Code: `200`
 
 Creates a debezium/kafka connector for the given database. Introspects
-the database and creates a topic in the kafka cluster with `environmentId.dbName`. There is no check for whether the database is reachable. That needs to be manually ensured. There is also no check to the permissions. Needs to be manually run.
+the database and creates a topic in the kafka cluster with `environmentId.dbName`. There is no check for whether the database is reachable. That needs to be manually ensured. There is also no check to the permissions. Needs to be manually run. Returns a JWT that is set as a cookie to be used for the next request.
 
 _Request_
 
@@ -153,7 +153,9 @@ _Request_
 _Response_
 
 ```json
-{}
+{
+  "data": "uniqueIdToUSeAsKafkaTopic-connector"
+}
 ```
 
 ---
@@ -172,7 +174,6 @@ _Request_
 ```json
 {
   "connectionString": "mysql://user:pass@mysql:3306/inventory",
-  "environmentId": "eee",
   "sourceSql": "CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)",
   "sourceSqlTableTwo": "CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)",
   "querySql": "SELECT SUM(quantity) as summed FROM products_on_hand",
@@ -247,7 +248,7 @@ kcat -b localhost:9093 -t dbserver1.inventory.customers
 
 PUBLISH TO TEST TOPIC ON MACHINE
 
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=user -X sasl.password=bitnami -t newtop -P test
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -L
 
 CREATE TEST TOPIC IN DOCKER
 
@@ -255,4 +256,16 @@ kafka-topics.sh --create --bootstrap-server kafka:9092 --topic newtopicbanned --
 
 READ TOPIC FROM DEFAULT USER
 
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=ddii -X sasl.password=5kzDeeciCmg68NtgNWCcG4izH5U2AUmoTGcKO9u1hFk= -L
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop= -L
+
+{"programArgsList" : [
+
+"--source","CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)WITH ('debezium-json.schema-include'='true','scan.startup.mode'='earliest-offset','connector'='kafka','topic'='emily.inventory.products_on_hand','properties.bootstrap.servers'='localhost:9093','properties.group.id'='emily','properties.sasl.mechanism'='SCRAM-SHA-256','properties.security.protocol'='SASL_PLAINTEXT','properties.sasl.jaas.config'='org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;','format'='debezium-json')",
+
+"--sourceTwo","CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)WITH ('debezium-json.schema-include'='true','scan.startup.mode'='earliest-offset','connector'='kafka','topic'='emily.inventory.orders','properties.bootstrap.servers'='localhost:9093','properties.group.id'='emily','properties.sasl.mechanism'='SCRAM-SHA-256','properties.security.protocol'='SASL_PLAINTEXT','properties.sasl.jaas.config'='org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;','format'='debezium-json')",
+
+"--query", "SELECT SUM(quantity) as summed FROM products_on_hand",
+
+"--sink","CREATE TABLE custom_output_table_name (summed INT)WITH ('connector'='kafka','topic'='emily.inventory.custom_output_table_name','properties.bootstrap.servers'='localhost:9093','properties.group.id'='emily','properties.sasl.mechanism'='SCRAM-SHA-256','properties.security.protocol'='SASL_PLAINTEXT','properties.sasl.jaas.config'='org.apache.kafka.common.security.scram.ScramLoginModule required username=emily password=bleepbloop;','format'='debezium-json')",
+
+"--table","custom_output_table_name"],"parallelism": 1}

@@ -1,24 +1,30 @@
 package flow.core;
 
 import java.lang.reflect.Field;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.ArrayList;
+
+import org.json.JSONException;
 
 import com.google.gson.Gson;
 
 import flow.core.Connector.ConnectorClient;
 import flow.core.Connector.ConnectorResponseType;
 import flow.core.Connector.ConnectorSource;
-import flow.core.Connector.Kafka.KafkaClient;
 import flow.core.Job.JobClient;
 import flow.core.Job.JobResponseType;
 import flow.core.Job.JobSource;
+import flow.core.Kafka.KafkaClient;
 import flow.core.Settings.Settings;
 import flow.core.Utils.ApiKey;
 import flow.core.Utils.ArgumentValidator;
 import flow.core.Utils.ConnectionChecker;
 import flow.core.Utils.ConnectionStringParser;
 import flow.core.Utils.ConnectionStringParser.ConnectionStringParsed;
+import flow.core.Utils.JWT;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -121,9 +127,10 @@ public class Bootstrap {
             return;
           }
 
+          ArgumentValidator validator = new ArgumentValidator(this.settings);
+
           // Validate connection string
           try {
-            ArgumentValidator validator = new ArgumentValidator();
             validator.validateConnectionString(args.connectionString);
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4002));
@@ -131,16 +138,21 @@ public class Bootstrap {
 
           // Validate environment id
           try {
-            ArgumentValidator validator = new ArgumentValidator();
             validator.validateStringInput(args.environmentId, "environmentId");
+            validator.validateEnvironmentId(args.environmentId);
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4002));
             return;
           }
-          String formatted = connectorSource.connectionString(
-            args.connectionString,
-            args.environmentId
-          );
+          String formatted;
+          try {
+            formatted =
+              connectorSource.build(args.connectionString, args.environmentId);
+            System.out.println(formatted);
+          } catch (Exception e) {
+            context.json(returnError(e.getMessage(), 4003));
+            return;
+          }
 
           // Check that the user actually has a valid connection string and root access
           try {
@@ -161,21 +173,48 @@ public class Bootstrap {
             this.connectorClient.createConnector(formatted, client)
               .onSuccess(
                 result -> {
-                  context.json(
-                    new JsonObject()
-                    .put(
-                        "data",
-                        result.bodyAsJson(ConnectorResponseType.class).name !=
-                          null
-                          ? result.bodyAsJson(ConnectorResponseType.class).name
-                          : result.bodyAsJson(ConnectorResponseType.class)
-                            .message
-                      )
-                  );
+                  try {
+                    context
+                      .response()
+                      .headers()
+                      .add(
+                        "Authorization",
+                        "Bearer " + new JWT().create(args.environmentId)
+                      );
+                  } catch (
+                    InvalidKeyException
+                    | NoSuchAlgorithmException
+                    | JSONException e
+                  ) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                  }
+
+                  if (
+                    result.bodyAsJson(ConnectorResponseType.class).name != null
+                  ) {
+                    context.json(
+                      new JsonObject()
+                      .put(
+                          "data",
+                          result.bodyAsJson(ConnectorResponseType.class).name
+                        )
+                    );
+                  } else {
+                    context.response().headers().remove("Authorization");
+                    context.json(
+                      new JsonObject()
+                      .put(
+                          "data",
+                          result.bodyAsJson(ConnectorResponseType.class).message
+                        )
+                    );
+                  }
                 }
               )
               .onFailure(
                 handler -> {
+                  context.response().headers().remove("Authorization");
                   context.json(
                     returnError(
                       "Unable to communicate with debezium service. It may be offline.",
@@ -196,10 +235,29 @@ public class Bootstrap {
       .handler(
         context -> {
           io.vertx.ext.web.RequestBody body = null;
+          String environmentId = "";
           try {
             body = context.body();
+            // Extract header
+            System.out.println(context.request().getHeader("Authorization"));
+            environmentId =
+              new JWT()
+              .decodeJWT(
+                  context.request().getHeader("Authorization").substring(7)
+                )
+                .environmentId;
           } catch (Throwable e) {
-            context.json(new JsonObject().put("message", e).put("code", 4000));
+            System.out.println("throwing...");
+            context.json(
+              new JsonObject()
+                .put(
+                  "message",
+                  e.getMessage() != null
+                    ? e.getMessage()
+                    : "Unable to decode JWT"
+                )
+                .put("code", 4000)
+            );
             return;
           }
           // Parse arguments into JSON for easier handling in resolver
@@ -220,28 +278,24 @@ public class Bootstrap {
             return;
           }
 
+          ArgumentValidator validator = new ArgumentValidator(this.settings);
+
           // Validate connection string
           try {
-            ArgumentValidator validator = new ArgumentValidator();
             validator.validateConnectionString(args.connectionString);
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4002));
             return;
           }
-
           // Validate alphanumeric fields
           try {
-            ArgumentValidator validator = new ArgumentValidator();
-            validator.validateStringInput(args.environmentId, "environmentId");
             validator.validateStringInput(args.sourceSql, "sourceSql"); // separate CREATE TABLE validation function
+            validator.validateStringInput(
+              args.sourceSqlTableTwo, // separate CREATE TABLE validation function
+              "sourceSqlTableTwo"
+            );
             validator.validateStringInput(args.querySql, "querySql"); // separate CREATE SELECT validation function
             validator.validateStringInput(args.sinkSql, "sinkSql"); // separate CREATE TABLE validation function
-            if (args.sourceSqlTableTwo != null) {
-              validator.validateStringInput(
-                args.sourceSqlTableTwo, // separate CREATE TABLE validation function
-                "sourceSqlTableTwo"
-              );
-            }
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4002));
             return;
@@ -261,7 +315,6 @@ public class Bootstrap {
             return;
           }
 
-          // TODO make sure they own the database
           ApiKey apiKeyFactory = new ApiKey();
           String apiKeyForUser;
           try {
@@ -276,37 +329,37 @@ public class Bootstrap {
           // Grab database name from connection string
           ConnectionStringParsed connectionInfo = new ConnectionStringParser()
           .parse(args.connectionString);
-
           String formattedSourceSql;
-          String formattedSourceSqlTwo = null;
+          String formattedSourceSqlTwo;
           try {
             // Grab tablename
             String tableName = jobSource.extractTableNameFromCreateStatement(
               args.sourceSql
             );
+            System.out.println(tableName);
             formattedSourceSql =
-              jobSource.appendKafkaConnectionInfo(
-                false,
+              jobSource.build(
+                true,
                 args.sourceSql,
                 connectionInfo.dbName,
-                args.environmentId,
+                environmentId,
                 tableName
               );
+            System.out.println(formattedSourceSql);
 
-            if (args.sourceSqlTableTwo != null) {
-              // Grab tablename
-              String tableNameTwo = jobSource.extractTableNameFromCreateStatement(
-                args.sourceSqlTableTwo
+            // Grab tablename
+            String tableNameTwo = jobSource.extractTableNameFromCreateStatement(
+              args.sourceSqlTableTwo
+            );
+            formattedSourceSqlTwo =
+              jobSource.build(
+                true,
+                args.sourceSqlTableTwo,
+                connectionInfo.dbName,
+                environmentId,
+                tableNameTwo
               );
-              formattedSourceSqlTwo =
-                jobSource.appendKafkaConnectionInfo(
-                  false,
-                  args.sourceSqlTableTwo,
-                  connectionInfo.dbName,
-                  args.environmentId,
-                  tableNameTwo
-                );
-            }
+            System.out.println(formattedSourceSqlTwo);
           } catch (Throwable e) {
             context.json(returnError(e.getMessage(), 4006));
             return;
@@ -316,13 +369,21 @@ public class Bootstrap {
           String sinkTableName = jobSource.extractTableNameFromCreateStatement(
             args.sinkSql
           );
-          String sinkString = jobSource.appendKafkaConnectionInfo(
-            true,
-            args.sinkSql,
-            connectionInfo.dbName,
-            args.environmentId,
-            sinkTableName
-          );
+          String sinkString;
+          try {
+            sinkString =
+              jobSource.build(
+                false,
+                args.sinkSql,
+                connectionInfo.dbName,
+                environmentId,
+                sinkTableName
+              );
+            System.out.println(sinkString);
+          } catch (Exception e) {
+            context.json(returnError(e.getMessage(), 4006));
+            return;
+          }
 
           // The field to sum needs to be an integer.
           String validJSON = String.format(
@@ -335,6 +396,7 @@ public class Bootstrap {
           );
 
           System.out.println(validJSON);
+
           try {
             jobClient
               .runJob(
@@ -344,9 +406,36 @@ public class Bootstrap {
               )
               .onSuccess(
                 response -> {
+                  String environmentIdLocal;
+                  try {
+                    // TODO do not recreate variable beacuse of lambda
+                    System.out.println(
+                      "fromsuccess" +
+                      context.request().getHeader("Authorization").substring(7)
+                    );
+                    environmentIdLocal =
+                      new JWT()
+                      .decodeJWT(
+                          context
+                            .request()
+                            .getHeader("Authorization")
+                            .substring(7)
+                        )
+                        .environmentId;
+                  } catch (
+                    InvalidKeyException
+                    | NoSuchAlgorithmException
+                    | JSONException
+                    | ParseException e
+                  ) {
+                    // TODO Auto-generated catch block
+                    context.json(returnError(e.getMessage(), 4007));
+                    return;
+                  }
+
                   io.vertx.core.json.JsonObject res = new JsonObject()
                     .put("name", "successfully started Flink job.")
-                    .put("environmentId", args.environmentId)
+                    .put("environmentId", environmentIdLocal)
                     .put("apiKey", apiKeyForUser)
                     .put(
                       "jobId",
@@ -359,10 +448,10 @@ public class Bootstrap {
                   ) {
                     try {
                       String rule = kafkaClient.createPermissions(
-                        args.environmentId,
+                        environmentIdLocal,
                         apiKeyForUser
                       );
-                      kafkaClient.run(rule);
+                      kafkaClient.modifyACL(rule);
                     } catch (Exception e) {
                       context.json(returnError(e.getMessage(), 4005));
                       return;
@@ -370,6 +459,8 @@ public class Bootstrap {
                     context.json(res);
                     return;
                   } else {
+                    System.out.println(response.bodyAsString());
+                    System.out.println(response.body().toString());
                     context.json(
                       returnError("Issue launching generated flink job", 4007)
                     );

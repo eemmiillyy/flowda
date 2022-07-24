@@ -36,6 +36,11 @@ public class ConnectionStringParser {
     String dbName = uri.getPath().substring(1); // Remove / at beginning of db name
     String username = userInfo[0];
     String password = userInfo[1];
+    System.out.println(port);
+    System.out.println(dbName);
+    System.out.println(host);
+    System.out.println(username);
+    System.out.println(password);
     return new ConnectionStringParsed(
       host,
       port.toString(),
