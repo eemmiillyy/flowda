@@ -459,8 +459,6 @@ public class Bootstrap {
                     context.json(res);
                     return;
                   } else {
-                    System.out.println(response.bodyAsString());
-                    System.out.println(response.body().toString());
                     context.json(
                       returnError("Issue launching generated flink job", 4007)
                     );

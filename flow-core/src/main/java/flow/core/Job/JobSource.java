@@ -11,21 +11,12 @@ import flow.core.Utils.ClassToStringConverter;
 
 public class JobSource {
 
-  private String loginModule;
   private Settings settings;
   private Gson g;
 
   public JobSource(Settings settings) {
     this.settings = settings;
 
-    this.loginModule =
-      String.format(
-        "org.apache.kafka.common.security.scram.ScramLoginModule required username=%s password=%s;",
-        this.settings.settings.services.kafka.admin.user,
-        settings.decryptField(
-          this.settings.settings.services.kafka.admin.$$password
-        )
-      );
     this.g = new Gson();
   }
 
@@ -53,13 +44,7 @@ public class JobSource {
     connectionObject.topic =
       environmentId + "." + databaseName + "." + tableName;
     connectionObject.properties_bootstrap_servers =
-      this.settings.settings.services.kafka.bootstrap.serversExternal;
-    connectionObject.properties_group_id = environmentId;
-    connectionObject.properties_sasl_mechanism =
-      this.settings.settings.services.kafka.sasl.mechanism;
-    connectionObject.properties_security_protocol =
-      this.settings.settings.services.kafka.sasl.protocol;
-    connectionObject.properties_sasl_jaas_config = this.loginModule;
+      this.settings.settings.services.kafka.bootstrap.serversInternal;
 
     ArrayList<String> map = new ClassToStringConverter()
     .convertToStringArray(connectionObject);

@@ -1,5 +1,33 @@
 version: "2"
 services:
+  jobmanager:
+    image: flink:1.15-scala_2.12
+    expose:
+      - "6123"
+    ports:
+      - "8081:8081"
+    links:
+      - kafka
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+
+  taskmanager:
+    image: flink:1.15-scala_2.12
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    links:
+      - kafka
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 6
+        parallelism.default: 1
   zookeeper:
     image: "bitnami/zookeeper:latest"
     ports:

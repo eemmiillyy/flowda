@@ -29,6 +29,7 @@ public class JobClient {
 
     Future<HttpResponse<Buffer>> res = client
       .post(port, host, url)
+      .timeout(16000)
       .sendJsonObject(new JsonObject(body));
     return res;
   }

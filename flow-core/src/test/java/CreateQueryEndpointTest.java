@@ -178,55 +178,54 @@ public class CreateQueryEndpointTest {
       "\"jobId\":\"mockJobId\""
     );
   }
+  // @Test
+  // public void testThrowsWithMissingConnectionStringQuery()
+  //   throws InterruptedException {
+  //   runTest(
+  //     "{\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+  //     "{\"message\":\"connectionString are missing.\",\"code\":4001}"
+  //   );
+  // }
 
-  @Test
-  public void testThrowsWithMissingConnectionStringQuery()
-    throws InterruptedException {
-    runTest(
-      "{\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"connectionString are missing.\",\"code\":4001}"
-    );
-  }
+  // @Test
+  // public void testThrowsWithMissingSourceSqlQuery()
+  //   throws InterruptedException {
+  //   runTest(
+  //     "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\", \"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+  //     "{\"message\":\"sourceSql are missing.\",\"code\":4001}"
+  //   );
+  // }
 
-  @Test
-  public void testThrowsWithMissingSourceSqlQuery()
-    throws InterruptedException {
-    runTest(
-      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\", \"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"sourceSql are missing.\",\"code\":4001}"
-    );
-  }
+  // @Test
+  // public void testThrowsWithMissingSourceSqlTableTwoQuery()
+  //   throws InterruptedException {
+  //   runTest(
+  //     "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+  //     "{\"message\":\"sourceSqlTableTwo are missing.\",\"code\":4001}"
+  //   );
+  // }
 
-  @Test
-  public void testThrowsWithMissingSourceSqlTableTwoQuery()
-    throws InterruptedException {
-    runTest(
-      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"sourceSqlTableTwo are missing.\",\"code\":4001}"
-    );
-  }
+  // @Test
+  // public void testThrowsWithMissingQuerySql() throws InterruptedException {
+  //   runTest(
+  //     "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+  //     "{\"message\":\"querySql are missing.\",\"code\":4001}"
+  //   );
+  // }
 
-  @Test
-  public void testThrowsWithMissingQuerySql() throws InterruptedException {
-    runTest(
-      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"querySql are missing.\",\"code\":4001}"
-    );
-  }
+  // @Test
+  // public void testThrowsWithMissingSinkSqlQuery() throws InterruptedException {
+  //   runTest(
+  //     "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\" }",
+  //     "{\"message\":\"sinkSql are missing.\",\"code\":4001}"
+  //   );
+  // }
 
-  @Test
-  public void testThrowsWithMissingSinkSqlQuery() throws InterruptedException {
-    runTest(
-      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\" }",
-      "{\"message\":\"sinkSql are missing.\",\"code\":4001}"
-    );
-  }
-
-  @Test
-  public void testThrowsWithMissingArguments() throws InterruptedException {
-    runTest(
-      "{}",
-      "{\"message\":\"connectionString,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}"
-    );
-  }
+  // @Test
+  // public void testThrowsWithMissingArguments() throws InterruptedException {
+  //   runTest(
+  //     "{}",
+  //     "{\"message\":\"connectionString,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}"
+  //   );
+  // }
 }
