@@ -43,37 +43,6 @@ export SECRET=[secret] STAGE=development
 java -jar target/flow.core-1.0-SNAPSHOT.jar
 ```
 
-#### Configure Kafka super user
-
-1. Open a bash shell in the docker container
-
-```bash
-docker exec -u root -it flowda_kafka_1 bash
-```
-
-Inside `/opt/bitnami/kafka/bin`
-
-2. Create user
-   ```bash
-   kafka-configs.sh --zookeeper zookeeper:2181 --alter --add-config 'SCRAM-SHA-256=[iterations=8192,password=bleepbloop],SCRAM-SHA-512=[password=bleepbloop]' --entity-type users --entity-name emily
-   ```
-3. give super user emily access to all topics
-   ```bash
-   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --topic "\*"
-   ```
-4. give super user emily access to all groups
-   ```bash
-   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --add --allow-principal User:emily --operation ALL --group *
-   ```
-5. Confirm on vm
-   ```bash
-   kafka-acls.sh --authorizer-properties zookeeper.connect=zookeeper:2181 --list
-   ```
-6. Confirm on host
-   ```bash
-   kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password="bleepbloop" -L
-   ```
-
 ## Test
 
 Tests use JUnit and Mockito. There are a combination of unit tests and integration tests. Each test suite for each domain should live beside the module they are testing.

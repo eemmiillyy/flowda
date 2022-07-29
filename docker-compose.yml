@@ -13,7 +13,6 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-
   taskmanager:
     image: flink:1.15-scala_2.12
     depends_on:
@@ -51,10 +50,10 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CLIENT:SASL_PLAINTEXT
       - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAINTEXT
       - KAFKA_CFG_AUTHORIZER_CLASS_NAME=kafka.security.authorizer.AclAuthorizer
-      - KAFKA_CFG_SUPER_USERS=User:emily;User:ANONYMOUS
+      - KAFKA_CFG_SUPER_USERS=User:emily;User:ANONYMOUS;
       #Client credentials
-      - KAFKA_CLIENT_USER=user
-      - KAFKA_CLIENT_PASSWORD=bitnami
+      - KAFKA_CLIENT_USER=emily
+      - KAFKA_CLIENT_PASSWORD=bleepbloop
     depends_on:
       - zookeeper
   mysql:
