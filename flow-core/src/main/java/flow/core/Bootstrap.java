@@ -446,16 +446,22 @@ public class Bootstrap {
                   if (
                     response.bodyAsJson(JobResponseType.class).jobid != null
                   ) {
-                    try {
-                      String rule = kafkaClient.createPermissions(
-                        environmentIdLocal,
-                        apiKeyForUser
-                      );
-                      kafkaClient.modifyACL(rule);
-                    } catch (Exception e) {
-                      context.json(returnError(e.getMessage(), 4005));
-                      return;
-                    }
+                    vertexInstance.executeBlocking(
+                      call -> {
+                        try {
+                          String rule = kafkaClient.createPermissions(
+                            environmentIdLocal,
+                            apiKeyForUser
+                          );
+                          kafkaClient.modifyACL(rule);
+                          call.complete();
+                        } catch (Exception e) {
+                          context.json(returnError(e.getMessage(), 4005));
+                          return;
+                        }
+                      }
+                    );
+
                     context.json(res);
                     return;
                   } else {
