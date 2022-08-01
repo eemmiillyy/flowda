@@ -1,22 +1,14 @@
-import React from "react";
 import "./App.css";
+import { Message } from "./Message";
 
 function App() {
-  var ws = new WebSocket(`ws://localhost:4000`);
-  ws.onopen = (w) => {
-    console.log("opened", w);
-  };
-  ws.onmessage = (message) => {
-    setMessages(message.data.toString());
-  };
-
-  const [message, setMessages] = React.useState<string>("");
-
+  // Websocket Client
+  const ws = new WebSocket(`ws://localhost:4000`);
   return (
     <div className="App">
       <header className="App-header">
         <div>
-          <p>{message}</p>
+          <Message ws={ws}></Message>
         </div>
       </header>
     </div>
