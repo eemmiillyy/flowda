@@ -93,9 +93,7 @@ public class SettingsTest {
               mutableSettings.decryptField(encrypted),
               plaintextPassword
             );
-          } catch (Exception e) {
-            // Handle exception
-          }
+          } catch (Exception e) {}
           latch.countDown();
         }
       );

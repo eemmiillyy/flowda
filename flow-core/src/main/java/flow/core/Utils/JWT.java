@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 
 public class JWT {
 
-  // TODO use dot env
   private String secret = System.getenv("SECRET");
   private static final String header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
   Encoder e = Base64.getUrlEncoder().withoutPadding();

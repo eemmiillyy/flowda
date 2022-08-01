@@ -428,7 +428,6 @@ public class Bootstrap {
                     | JSONException
                     | ParseException e
                   ) {
-                    // TODO Auto-generated catch block
                     context.json(returnError(e.getMessage(), 4007));
                     return;
                   }
@@ -442,7 +441,7 @@ public class Bootstrap {
                       response.bodyAsJson(JobResponseType.class).jobid
                     );
 
-                  // If all was successful then add permissions
+                  // If all was successful then add permissions in background thread
                   if (
                     response.bodyAsJson(JobResponseType.class).jobid != null
                   ) {
@@ -491,9 +490,7 @@ public class Bootstrap {
       );
 
     return server
-      // Handle every request using the router
       .requestHandler(router)
-      // Start listening
       .listen(8888)
       .onSuccess(
         server -> {
