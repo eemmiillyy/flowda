@@ -147,6 +147,35 @@ _Response_
 kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop= -L
 ```
 
+```bash
+kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=user -X sasl.password=bitnami -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
+```
+
+## One way SSL between client and broker
+
+https://docs.confluent.io/platform/current/security/security_tutorial.html#creating-ssl-keys-and-certificates
+
+1. Generate keypair and self signed certificate inside `kafka.server.keystore.jks `(Creates one enty)
+   `sudo keytool -keystore kafka.server.keystore.jks -alias localhost -keyalg RSA -validity {validity} -genkey`
+2. Verified with `sudo keytool -list -v -keystore kafka.server.keystore.jks`.
+3. Create custom certificate authority to sign the certificate (Needs to be a real CA in prod, generates ca-key and ca-cert).
+   `sudo openssl req -new -x509 -keyout ca-key -out ca-cert -days {validity}`
+4. The broker key/cert pair needs a corresponding trust store that contains the new CA authority that signed it's identificate certificate. Creates `kafka.server.truststore.jks`
+   `keytool -keystore kafka.server.truststore.jks -alias CARoot -importcert -file ca-cert`
+5. Verify with `keytool -list -v -keystore kafka.truststore.jks` should contain caroot entry.
+6. Export the certificate before signing from step one with the custom authority. (Creates cert-file).
+   `keytool -keystore kafka.server.keystore.jks -alias localhost -certreq -file cert-file`
+7. Sign it (Creates cert-signed).
+   `openssl x509 -req -CA ca-cert -CAkey ca-key -in cert-file -out cert-signed -days {validity} -CAcreateserial -passin pass:{ca-password}`
+8. Import ca cert and signed cert into `kafka.server.keystore.jks`
+   `keytool -keystore kafka.server.keystore.jks -alias CARoot -importcert -file ca-cert keytool -keystore kafka.server.keystore.jks -alias localhost -importcert -file cert-signed`
+9. Place keystore and truststore files inside the `./keystore `and `./truststore` folders respectively.
+
+## Consuming output
+
+Clients consuming kafka topic output with their API key need to connect over SSL. In order to do that, they need to trust the certificate authority that signed the brokers certificate, or some authority up the chain that signed that certificate authority.
+When this moves
+
 ## Re-encrypting a phrase
 
 1. Change the field (prefixed with `$$`) to the plaintext version

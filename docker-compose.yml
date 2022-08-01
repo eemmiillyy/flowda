@@ -33,6 +33,7 @@ services:
       - "2181:2181"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=true
+      - ZOO_ENABLE_AUTH=no
   kafka:
     image: "bitnami/kafka:latest"
     links:
@@ -47,15 +48,26 @@ services:
       - KAFKA_CFG_LISTENERS=INTERNAL://:9092,CLIENT://:9093,
       - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,CLIENT://localhost:9093
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CLIENT:SASL_PLAINTEXT
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CLIENT:SASL_SSL
       - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAINTEXT
+      - KAFKA_ZOOKEEPER_PROTOCOL=PLAINTEXT
       - KAFKA_CFG_AUTHORIZER_CLASS_NAME=kafka.security.authorizer.AclAuthorizer
-      - KAFKA_CFG_SUPER_USERS=User:emily;User:ANONYMOUS;
+      - KAFKA_CFG_SUPER_USERS=User:emily;User:user;User:ANONYMOUS;
+      # - KAFKA_ZOOKEEPER_USER=kafka
+      # - KAFKA_ZOOKEEPER_PASSWORD=kafka_password
       #Client credentials
-      - KAFKA_CLIENT_USER=emily
-      - KAFKA_CLIENT_PASSWORD=bleepbloop
+      - KAFKA_CLIENT_USERS=emily,user
+      - KAFKA_CLIENT_PASSWORDS=bleepbloop,bitnami
+      - KAFKA_CERTIFICATE_PASSWORD=bleepbloop
+      - KAFKA_TLS_TYPE=JKS
+      - KAFKA_ZOOKEEPER_TLS_VERIFY_HOSTNAME=false
+      - KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=''
+
     depends_on:
       - zookeeper
+    volumes:
+      - "./keystore/kafka.server.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
+      - "./truststore/kafka.server.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
   mysql:
     # mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory
     # mysql://debezium:dbz@127.0.0.1:3306/inventory
