@@ -60,10 +60,10 @@ const consumer = kafkaClient.consumer({ groupId: clientId });
 
 const consume = async () => {
   await consumer.run({
-    // Only runs if there is an update. It doesn't run for all topics
     eachMessage: async ({ message }) => {
       console.log("NEW MESSAGE FROM KAFKA...", message.value.toString());
       writeToFile(message.value.toString());
+      console.log("sending most recent");
       wsServer.clients.forEach((client) => {
         client.send(message.value.toString());
       });
@@ -79,18 +79,27 @@ const wsServer = new WebSocketServer({
 // On client connection try and consume
 wsServer.on("connection", async (client) => {
   const description = await consumer.describeGroup();
-  // No group members,
+  console.log("new connection.............", description.state);
+
   const needsRestart =
     description.state === "Dead" || description.state === "Empty";
   if (needsRestart) {
-    await consumer.connect();
-    await consumer.subscribe({
-      fromBeginning: true,
-      topic: topicName,
-    });
-    consume();
+    try {
+      await consumer.connect();
+      await consumer.subscribe({
+        fromBeginning: true,
+        topic: topicName,
+      });
+      consume();
+    } catch (e) {
+      client.send(e.toString());
+    }
   }
+
   if (description.state === "Stable") {
+    console.log("sending cache");
+    // TODO Capture error
+    // TODO notify when reading from cache
     const content = fs.readFileSync(p, "utf-8");
     // If there are no more messages to consume read them from the file
     const parsed: Data[] = JSON.parse(content);
@@ -99,6 +108,15 @@ wsServer.on("connection", async (client) => {
       wsServer.clients.forEach((client) => {
         client.send(JSON.stringify(msg));
       });
+    });
+  }
+  if (
+    description.state === "CompletingRebalance" ||
+    description.state === "PreparingRebalance" ||
+    description.state === "Unknown"
+  ) {
+    wsServer.clients.forEach((client) => {
+      client.send("UNKNOWN OR REBALANCING");
     });
   }
 });

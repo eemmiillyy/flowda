@@ -148,7 +148,7 @@ kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SC
 ```
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=user -X sasl.password=bitnami -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
+kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
 ```
 
 ## One way SSL between client and broker

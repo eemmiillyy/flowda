@@ -53,7 +53,7 @@
           },
           "flink": {
             "servers": "http://localhost:8081",
-            "jar": "/jars/aee7b23d-271a-43a4-a56e-414a0fca8dd2_flow.flink.job-1.0-SNAPSHOT.jar/run"
+            "jar": "/jars/980b45d5-f3eb-4404-ba7b-58abb3100060_flow.flink.job-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
             "containerName": "flowda_connect_1",
