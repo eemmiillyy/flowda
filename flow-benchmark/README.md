@@ -129,3 +129,132 @@ with environmentId set to emily.
 446
 438
 442
+
+These above numbers are from a single update, and a single job running on the cluter.
+I'm connecting with the default kafka super user - not over SSL.
+
+How does it compare when I run 5 more connectors on the same database but a different job on the same cluster, which will also receive results from the job since it's monitoring the same table.
+
+With two jobs running: separate databases (No concurrent changes though):;
+455
+557
+437
+435
+435
+439
+431
+455
+445
+448
+441
+446
+446
+448
+444
+439
+
+419
+439
+447
+454
+444 = 440.6
+
+516
+181
+436
+430
+437
+435
+439
+433
+427
+433
+450
+433
+427
+452
+436
+440
+
+444
+444
+459
+435
+453 = 447
+
+560
+424
+392
+434
+446
+429
+432
+437
+443
+446
+448
+445
+404
+449
+426
+404
+
+440
+434
+440
+443
+424 = 436.2
+
+563
+416
+431
+432
+434
+436
+445
+445
+442
+440
+444
+448
+442
+446
+438
+447
+
+445
+439
+409
+338
+446 = 415.4
+
+620
+139
+431
+421
+435
+444
+415
+435
+459
+444
+443
+445
+457
+445
+452
+441
+
+454
+431
+448
+453
+445 = 446.2
+
+38
+78-38 = 40
+117 - 79 = 40
+160 - 118 = 40
+
+198- 169 = 30
+234-194 = 40

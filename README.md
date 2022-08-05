@@ -16,15 +16,11 @@ export SECRET=Chv1ocZ74xL9fl4hcJRfEvt6ZHmF6KlS1P6cDQBFdmjXOlwBJK0EAiYR1bdyzxVH S
 
 #### Upload the job
 
-1. Visit `localhost:8081/submit`
+1. `./setupFlink.sh`
 
-2. Upload .jar file `flow.flink.job-1.0-SNAPSHOT.jar`
+2. Extract the id of the jar.
 
-3. Visit `http://0.0.0.0:8081/jars`
-
-4. Extract the id of the jar.
-
-5. Change the settings.[STAGE].services.flink.jar value to `/jars/[XXXXX]/run`
+3. Change the settings.[STAGE].services.flink.jar value to `/jars/[XXXXX]/run`
 
 **NOTE** We must manually upload the packaged .jar file from these steps to flink via the UI and retrieve it's job id. After that `Settings.json` jar file path needs to be updated.
 
@@ -144,7 +140,7 @@ _Response_
 ## Debug
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop= -L
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -t emilytwo.inventory.custom_output_table_name
 ```
 
 ```bash
@@ -209,3 +205,6 @@ SECRET=[secret] STAGE=development java -jar target/flow.core-1.0-SNAPSHOT.jar
 ```
 
 Then undo changes to server and re run with new secret.
+
+mysql://debezium:dbz@10.0.6.115:3306/inventory
+mysql://debezium:dbz@10.0.6.115:3307/inventory

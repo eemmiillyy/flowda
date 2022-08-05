@@ -26,22 +26,21 @@ public class Latency extends BenchmarkTestBase {
     }
   }
 
-  // TODO instead of sending one request,
-  // send a bunch and monitor for the single one
-  // with target value. When the 500th has sent - wait for a response, start measuring
-  // until that value is seen
-  // TODO Set timeout
   public void setup() throws Exception {
     targetValue = (new Long(System.currentTimeMillis()).intValue() % 10000);
+    // System.out.println(targetValue);
     KafkaClient constructor = new KafkaClient();
     try {
-      client = constructor.create();
+      client = constructor.create("emilytwo");
       client.subscribe(
         Arrays.asList("emilytwo.inventory.custom_output_table_name")
       );
     } catch (Exception e) {
       System.out.println("Issue with Latency setup" + e);
     }
+    // TODO create worker thread that makes a bunch of random updates to all other dbs, including this table
+    // and this db excluding this table.
+    // After a couple seconds, run this reset and update as target value.
     mysqlClient = new MysqlClient();
     mysqlClient.runQuery(
       "UPDATE products_on_hand SET quantity=0 WHERE !isnull (product_id);"

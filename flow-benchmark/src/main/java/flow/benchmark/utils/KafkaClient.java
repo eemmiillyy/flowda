@@ -13,9 +13,9 @@ public class KafkaClient {
    * Creates a kafka client for the given
    */
 
-  public KafkaConsumer<String, String> create() throws Exception {
+  public KafkaConsumer<String, String> create(String groupId) throws Exception {
     // Ensure each kafka consumer belongs to a new consumer group
-    String randomGroupId = "emilytwo"; //UUID.randomUUID().toString(); //"emilytwo";
+    String randomGroupId = groupId; //UUID.randomUUID().toString(); //"emilytwo";
 
     String login = String.format(
       "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
@@ -30,6 +30,8 @@ public class KafkaClient {
     props.put("value.deserializer", StringDeserializer.class.getName());
     props.put("auto.offset.reset", "earliest");
     props.put("security.protocol", "SASL_PLAINTEXT");
+    props.put("max.poll.records", 100000);
+    props.put("max.partition.fetch.bytes", 100000);
     props.put("default.api.timeout.ms", 6000);
     props.put(SaslConfigs.SASL_MECHANISM, "SCRAM-SHA-256");
     props.put(SaslConfigs.SASL_JAAS_CONFIG, login);

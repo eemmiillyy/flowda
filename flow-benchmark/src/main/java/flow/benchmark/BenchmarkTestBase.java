@@ -8,5 +8,5 @@ public abstract class BenchmarkTestBase {
 
   public abstract void teardown() throws Exception;
 
-  public abstract void measure();
+  public abstract void measure() throws Exception;
 }

@@ -78,6 +78,16 @@ services:
       - MYSQL_ROOT_PASSWORD=debezium
       - MYSQL_USER=mysqluser
       - MYSQL_PASSWORD=mysqlpw
+  mysqltwo:
+    # mysql://mysqluser:mysqlpw@127.0.0.1:3307/inventory
+    # mysql://debezium:dbz@127.0.0.1:3306/inventory
+    image: quay.io/debezium/example-mysql:1.9
+    ports:
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=debezium
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
   connect:
     image: quay.io/debezium/connect:latest
     ports:
