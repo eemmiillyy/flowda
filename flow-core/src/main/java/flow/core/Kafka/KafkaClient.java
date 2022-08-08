@@ -76,7 +76,7 @@ public class KafkaClient {
 
   public String createTopicAccess(String environmentId) {
     return String.format(
-      "kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s\" --resource-pattern-type PREFIXED",
+      "kafka-acls.sh --authorizer-properties zookeeper.connect=%s --add --allow-principal User:%s --operation ALL --topic \"%s.\" --resource-pattern-type PREFIXED",
       this.settings.settings.services.zookeeper.serversInternal,
       environmentId,
       environmentId

@@ -239,6 +239,7 @@ public class Bootstrap {
           try {
             body = context.body();
             // Extract header
+            System.out.println(context.request().headers());
             System.out.println(context.request().getHeader("Authorization"));
             environmentId =
               new JWT()

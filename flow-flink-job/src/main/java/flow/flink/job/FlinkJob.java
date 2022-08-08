@@ -1,6 +1,7 @@
 package flow.flink.job;
 
 import org.apache.flink.api.java.utils.MultipleParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableEnvironment;
@@ -38,7 +39,9 @@ public class FlinkJob {
      */
     EnvironmentSettings env = EnvironmentSettings.newInstance().build();
     TableEnvironment tableEnv = TableEnvironment.create(env);
-
+    Configuration configuration = tableEnv.getConfig().getConfiguration();
+    configuration.setString("table.optimizer.agg-phase-strategy", "ONE_PHASE");
+    configuration.setString("sql-client.execution.result-mode", "CHANGELOG");
     // SOURCE ONE
     tableEnv.executeSql(params.get(SOURCE));
     // SOURCE TWO

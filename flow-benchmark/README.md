@@ -7,6 +7,13 @@ with environmentId set to emily.
 
 `mvn install`
 
+`cd ../`
+`./setupFlink.sh`
+`./setupConnector.sh`
+
+> Need to manually change the environmentId you want to create with setupConnector.
+> Need to then use that environmentId to build the benchmark suite
+
 ## Building
 
 `mvn clean verify`

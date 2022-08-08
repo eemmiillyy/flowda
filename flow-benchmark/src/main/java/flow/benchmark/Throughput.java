@@ -19,6 +19,7 @@ public class Throughput extends BenchmarkTestBase {
   public MysqlClient mysqlClient;
   protected flow.benchmark.utils.MysqlClient.seedSerial runnable;
   Thread thread;
+  protected String environmentId = "jajajaja";
 
   public Throughput() throws Exception {
     // Double the iterations for a warm up period.
@@ -33,9 +34,11 @@ public class Throughput extends BenchmarkTestBase {
     // Create kafka client listening to topic
     KafkaClient constructor = new KafkaClient();
     try {
-      client = constructor.create("emilytwo");
+      client = constructor.create(this.environmentId);
       client.subscribe(
-        Arrays.asList("emilytwo.inventory.custom_output_table_name")
+        Arrays.asList(
+          this.environmentId + ".inventory.custom_output_table_name"
+        )
       );
     } catch (Exception e) {
       System.out.println("Issue with Latency setup" + e);
@@ -71,7 +74,8 @@ public class Throughput extends BenchmarkTestBase {
 
     ConsumerRecords<String, String> records = client.poll(2000);
     for (ConsumerRecord<String, String> record : records) {
-      // System.out.println(record.value());
+      System.out.println("Record key size:: " + record.serializedKeySize());
+      System.out.println("Record value size::" + record.serializedValueSize());
       writer.println(record.value());
     }
     System.out.println("done");

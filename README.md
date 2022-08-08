@@ -14,16 +14,6 @@ mvn install
 export SECRET=Chv1ocZ74xL9fl4hcJRfEvt6ZHmF6KlS1P6cDQBFdmjXOlwBJK0EAiYR1bdyzxVH STAGE=development && mvn -DskipTests=true clean package
 ```
 
-#### Upload the job
-
-1. `./setupFlink.sh`
-
-2. Extract the id of the jar.
-
-3. Change the settings.[STAGE].services.flink.jar value to `/jars/[XXXXX]/run`
-
-**NOTE** We must manually upload the packaged .jar file from these steps to flink via the UI and retrieve it's job id. After that `Settings.json` jar file path needs to be updated.
-
 #### Build the server
 
 ```bash
@@ -32,17 +22,14 @@ mvn install
 export SECRET=[secret] STAGE=test && mvn clean package
 ```
 
-#### Running the server
+#### Upload the job and start server
 
-```bash
-export SECRET=[secret] STAGE=development
-java -jar target/flow.core-1.0-SNAPSHOT.jar
-```
+1. `./setupFlink.sh`
 
 ## Test
 
 Tests use JUnit and Mockito. There are a combination of unit tests and integration tests. Each test suite for each domain should live beside the module they are testing.
-`export SECRET=[secret] STAGE=test && mvn test && unset SECRET STAGE` to check the services are healthy
+`export SECRET=[secret] STAGE=test && mvn test && unset SECRET STAGE`
 
 Run a single test
 `mvn -Dtest=AppTest test`
