@@ -21,7 +21,7 @@
           },
           "flink": {
             "servers": "http://localhost:8081",
-            "jar": "/jars/f1badddc-f4e0-4f62-9890-8f781c690b8b_flow.flink.job-1.0-SNAPSHOT.jar/run"
+            "jar": "/jars/f21b0bf8-7a9f-4d69-8bdd-4c86e237efff_flow.flink.job-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
             "containerName": "flowda_connect_1",
@@ -53,7 +53,7 @@
           },
           "flink": {
             "servers": "http://localhost:8081",
-            "jar": "/jars/f1badddc-f4e0-4f62-9890-8f781c690b8b_flow.flink.job-1.0-SNAPSHOT.jar/run"
+            "jar": "/jars/f21b0bf8-7a9f-4d69-8bdd-4c86e237efff_flow.flink.job-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
             "containerName": "flowda_connect_1",

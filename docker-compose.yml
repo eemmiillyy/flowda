@@ -96,6 +96,7 @@ services:
     links:
       - kafka
       - mysql
+      - mysqltwo
       - zookeeper
     environment:
       - BOOTSTRAP_SERVERS=kafka:9092

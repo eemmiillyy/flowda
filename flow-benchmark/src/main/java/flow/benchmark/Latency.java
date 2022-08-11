@@ -11,69 +11,79 @@ import flow.benchmark.utils.MysqlClient;
 
 public class Latency extends BenchmarkTestBase {
 
-  public int iterations = 5;
-  public int warmups = 15;
   public int targetValue;
   public KafkaConsumer<String, String> client;
   public MysqlClient mysqlClient;
+  protected String environmentId;
+  String testType = "";
+  String resetQuery;
+  String updateQuery;
+  String kafkaTopic;
+  String matcher;
+  String connectionString;
+  String user;
+  String pass;
 
-  public Latency() throws Exception {
-    // Double the iterations for a warm up period.
+  public Latency(
+    String environmentId,
+    String resetQuery,
+    String updateQuery,
+    int iterations,
+    int warmups,
+    String testType,
+    String matcher,
+    String connectionString,
+    String user,
+    String pass
+  )
+    throws Exception {
+    this.environmentId = environmentId;
+    this.testType = testType;
+    this.resetQuery = resetQuery;
+    this.updateQuery = updateQuery;
+    this.kafkaTopic =
+      this.environmentId + ".inventory.custom_output_table_name";
+    this.matcher = matcher;
+    this.connectionString = connectionString;
+    this.user = user;
+    this.pass = pass;
     for (int i = 0; i <= iterations + warmups; i++) {
       setup();
-      measure();
+      measure(i);
       teardown();
     }
   }
 
   public void setup() throws Exception {
-    targetValue = (new Long(System.currentTimeMillis()).intValue() % 10000);
-    // System.out.println(targetValue);
+    this.targetValue =
+      Math.abs((new Long(System.currentTimeMillis()).intValue() % 10000));
     KafkaClient constructor = new KafkaClient();
     try {
-      client = constructor.create("emilytwo");
-      client.subscribe(
-        Arrays.asList("emilytwo.inventory.custom_output_table_name")
-      );
+      client = constructor.create(this.environmentId);
+      client.subscribe(Arrays.asList(this.kafkaTopic));
     } catch (Exception e) {
       System.out.println("Issue with Latency setup" + e);
     }
-    // TODO create worker thread that makes a bunch of random updates to all other dbs, including this table
-    // and this db excluding this table.
-    // After a couple seconds, run this reset and update as target value.
-    mysqlClient = new MysqlClient();
-    mysqlClient.runQuery(
-      "UPDATE products_on_hand SET quantity=0 WHERE !isnull (product_id);"
-    );
-
-    // Update single row without waiting for response
-    mysqlClient.runQuery(
-      String.format(
-        "UPDATE products_on_hand    SET quantity=%s   WHERE product_id=109;",
-        targetValue
-      )
-    );
+    mysqlClient = new MysqlClient(this.connectionString, this.user, this.pass);
+    mysqlClient.runQuery(this.resetQuery);
+    mysqlClient.runQuery(String.format(this.updateQuery, targetValue));
   }
 
-  public void measure() {
-    // CPU USAGE, DISK, MEMORY sampling start
+  public void measure(int i) {
+    System.out.println(".................measuring...............");
     // Print the time when the fx starts and fx ends
     long startTime = System.currentTimeMillis();
     Boolean matched = false;
     while (matched == false) {
       ConsumerRecords<String, String> records = client.poll(100);
       for (ConsumerRecord<String, String> record : records) {
-        // System.out.println(record.value());
         if (
-          record
-            .value()
-            .equals(
-              String.format(
-                "{\"before\":null,\"after\":{\"summed\":%s},\"op\":\"c\"}",
-                targetValue
-              )
-            )
+          record.value().equals(String.format(this.matcher, this.targetValue))
         ) {
+          System.out.println(
+            ".................found matching record..............."
+          );
+          System.out.println(record.value());
           matched = true; // Should be only one match
           break;
         }
@@ -81,16 +91,12 @@ public class Latency extends BenchmarkTestBase {
     }
     long endTime = System.currentTimeMillis();
     long elapsedTime = endTime - startTime;
-    System.out.println(elapsedTime);
+    System.out.println("elapsedTime to find record:" + elapsedTime);
     client.close();
-    // CPU USAGE, DISK, MEMORY sampling end
+    // TODO CPU USAGE, DISK, MEMORY sampling end
   }
 
   public void teardown() throws Exception {
-    // Reset the database fields to 0
-    // Ensure the client sees these events before set up again
-    mysqlClient.runQuery(
-      "UPDATE products_on_hand SET quantity=0 WHERE !isnull (product_id);"
-    );
+    mysqlClient.runQuery(this.resetQuery);
   }
 }

@@ -51,13 +51,13 @@ public class ArgumentValidator {
   public boolean validateStringInput(String field, String fieldName)
     throws ValidationError {
     Pattern alphanumericWithSpecialCharacters = Pattern.compile(
-      "^[a-zA-Z0-9-_(),'. ]*$"
+      "^[a-zA-Z0-9-_(),'.= ]*$"
     );
     Matcher matcher = alphanumericWithSpecialCharacters.matcher(field);
     if (!matcher.matches()) {
       throw new ValidationError(
         String.format(
-          "VALIDATION EXCEPTION: %s must be alpha numeric characters only",
+          "VALIDATION EXCEPTION: %s must be alpha numeric characters only, as well as (),_-.'",
           fieldName
         )
       );

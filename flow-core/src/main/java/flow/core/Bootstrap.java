@@ -466,7 +466,11 @@ public class Bootstrap {
                     return;
                   } else {
                     context.json(
-                      returnError("Issue launching generated flink job", 4007)
+                      returnError(
+                        "Issue launching generated flink job::" +
+                        response.bodyAsString(),
+                        4007
+                      )
                     );
                     return;
                   }

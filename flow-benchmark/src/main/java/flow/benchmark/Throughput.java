@@ -13,75 +13,105 @@ import flow.benchmark.utils.MysqlClient;
 
 public class Throughput extends BenchmarkTestBase {
 
-  public int iterations = 0;
-  public int warmups = 0;
   public KafkaConsumer<String, String> client;
   public MysqlClient mysqlClient;
+  protected String environmentId;
   protected flow.benchmark.utils.MysqlClient.seedSerial runnable;
   Thread thread;
-  protected String environmentId = "jajajaja";
+  int sleepMs = 1440;
+  String testType = "";
+  String resetQuery;
+  String updateQuery;
+  String kafkaTopic;
+  int warmups;
+  String connectionString;
+  String user;
+  String pass;
 
-  public Throughput() throws Exception {
-    // Double the iterations for a warm up period.
+  public Throughput(
+    String environmentId,
+    String resetQuery,
+    String updateQuery,
+    int iterations,
+    int warmups,
+    String testType,
+    String connectionString,
+    String user,
+    String pass
+  )
+    throws Exception {
+    this.environmentId = environmentId;
+    this.testType = testType;
+    this.resetQuery = resetQuery;
+    this.updateQuery = updateQuery;
+    this.warmups = warmups;
+    this.kafkaTopic =
+      this.environmentId + ".inventory.custom_output_table_name";
+    this.connectionString = connectionString;
+    this.user = user;
+    this.pass = pass;
+
     for (int i = 0; i <= iterations + warmups; i++) {
       setup();
-      measure();
+      measure(i);
       teardown();
     }
   }
 
   public void setup() throws Exception {
-    // Create kafka client listening to topic
     KafkaClient constructor = new KafkaClient();
     try {
-      client = constructor.create(this.environmentId);
-      client.subscribe(
-        Arrays.asList(
-          this.environmentId + ".inventory.custom_output_table_name"
-        )
-      );
+      this.client = constructor.create(this.environmentId);
+      this.client.subscribe(Arrays.asList(this.kafkaTopic));
     } catch (Exception e) {
-      System.out.println("Issue with Latency setup" + e);
+      System.out.println("Issue with Latency setup simple" + e);
     }
-    // Reset to zero
-    mysqlClient = new MysqlClient();
-    mysqlClient.runQuery(
-      "UPDATE products_on_hand SET quantity=0 WHERE !isnull (product_id);"
-    );
-    this.runnable = mysqlClient.new seedSerial(mysqlClient);
+    mysqlClient = new MysqlClient(this.connectionString, this.user, this.pass);
+    mysqlClient.runQuery(this.resetQuery);
+    this.runnable = mysqlClient.new seedSerial(mysqlClient, this.updateQuery);
     this.thread = new Thread(runnable);
     this.thread.start();
-
-    System.out.println("Not waiting for this serial to complete");
   }
 
-  // seed -------------------- 3s
-  // wait half a second to account for latency,
-  // how many records have been seeded at 0,5s? how many at 1.5seconds?
-  // measure 0.5 seconds later ----- for 1s, so poll 1.5 seconds later
-  // and see how many records came through.
-  public void measure() throws Exception {
+  public void measure(int iteration) throws Exception {
     // Wait one minute then poll, adjusted to average latency per message
     try {
-      TimeUnit.MILLISECONDS.sleep(1440);
+      TimeUnit.MILLISECONDS.sleep(this.sleepMs);
     } catch (InterruptedException e) {
       System.out.println("Issue sleeping");
     }
-    PrintWriter writer = new PrintWriter(
-      "src/main/resources/output.txt",
-      "UTF-8"
-    );
 
-    ConsumerRecords<String, String> records = client.poll(2000);
-    for (ConsumerRecord<String, String> record : records) {
-      System.out.println("Record key size:: " + record.serializedKeySize());
-      System.out.println("Record value size::" + record.serializedValueSize());
-      writer.println(record.value());
+    if (iteration > this.warmups) {
+      PrintWriter writer = new PrintWriter(
+        String.format(
+          "src/main/resources/output%s-%s.txt",
+          this.warmups + this.iterations - iteration,
+          this.testType
+        ),
+        "UTF-8"
+      );
+
+      ConsumerRecords<String, String> records = this.client.poll(2000);
+      for (ConsumerRecord<String, String> record : records) {
+        System.out.println(
+          "Record value size::" + record.serializedValueSize()
+        );
+        writer.println(record.value());
+      }
+      System.out.println("done");
+
+      writer.close();
+    } else {
+      // Make sure record does not show up in consumer poll so results are easier to read
+      ConsumerRecords<String, String> records = this.client.poll(2000);
+      for (ConsumerRecord<String, String> record : records) {
+        System.out.println(
+          "Record value size::" + record.serializedValueSize()
+        );
+      }
     }
-    System.out.println("done");
 
-    client.close();
-    writer.close();
+    this.client.close();
     runnable.kill();
     thread.interrupt();
   }

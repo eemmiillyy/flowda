@@ -7,20 +7,12 @@ public class MysqlClient {
 
   java.sql.Connection conn = null;
 
-  //   mysql://debezium:dbz@10.0.6.115:3306/inventory
-  // mysql://debezium:dbz@10.0.6.115:3307/inventory
-
-  public MysqlClient() throws Exception {
+  public MysqlClient(String connection, String user, String pass)
+    throws Exception {
     Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
     try {
-      conn =
-        DriverManager.getConnection(
-          "jdbc:" + "mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory",
-          "mysqluser",
-          "mysqlpw"
-        );
+      conn = DriverManager.getConnection("jdbc:" + connection, user, pass);
     } catch (SQLException e) {
-      // Could not connect to server
       System.out.println("Could not connect to server");
       throw e;
     }
@@ -29,9 +21,9 @@ public class MysqlClient {
   public void runQuery(String query) throws SQLException {
     try {
       int result = conn.createStatement().executeUpdate(query);
-      //   System.out.println(result);
+      System.out.println(result);
     } catch (SQLException e) {
-      System.out.println("Could not run update query");
+      System.out.println("Could not run update query" + e);
       throw e;
     }
   }
@@ -41,23 +33,18 @@ public class MysqlClient {
     private volatile MysqlClient mysqlClient;
     private volatile int iterations = 0;
     private volatile boolean killed = false;
+    private volatile String sqlString;
 
-    public seedSerial(MysqlClient mysqlClient) {
+    public seedSerial(MysqlClient mysqlClient, String sqlString) {
       this.mysqlClient = mysqlClient;
+      this.sqlString = sqlString;
     }
 
     public void run() {
-      System.out.println("new thread");
       try {
         while (!killed) {
           this.iterations = this.iterations + 1;
-          System.out.println("looping " + this.iterations);
-          mysqlClient.runQuery(
-            String.format(
-              "UPDATE products_on_hand    SET quantity=%s   WHERE product_id=109;",
-              this.iterations
-            )
-          );
+          mysqlClient.runQuery(String.format(sqlString, this.iterations));
         }
         System.out.println(
           "killed, seeded" + iterations + "records successfully."
