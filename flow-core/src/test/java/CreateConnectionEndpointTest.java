@@ -143,7 +143,7 @@ public class CreateConnectionEndpointTest {
   public void testThrowsWithMissingConnectionString() throws Throwable {
     runTest(
       "{ \"environmentId\": \"u\"}",
-      "{\"message\":\"connectionString are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:connectionString are missing.\",\"code\":4001}"
     );
   }
 
@@ -151,7 +151,7 @@ public class CreateConnectionEndpointTest {
   public void testThrowsWithMissingEnvironmentId() throws Throwable {
     runTest(
       "{\"connectionString\": \"mysql://u:p@127.0.0.1:3306/inventory\"}",
-      "{\"message\":\"environmentId are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:environmentId are missing.\",\"code\":4001}"
     );
   }
 
@@ -159,7 +159,7 @@ public class CreateConnectionEndpointTest {
   public void testFailsWithNoArguments() throws Throwable {
     runTest(
       "{}",
-      "{\"message\":\"connectionString,environmentId are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:connectionString,environmentId are missing.\",\"code\":4001}"
     );
   }
 }

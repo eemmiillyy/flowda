@@ -9,33 +9,26 @@ docker-compose up -d
 #### Build the job
 
 ```bash
-cd flink-flow-job
+cd flow-flink-job
 mvn install
-export SECRET=Chv1ocZ74xL9fl4hcJRfEvt6ZHmF6KlS1P6cDQBFdmjXOlwBJK0EAiYR1bdyzxVH STAGE=development && mvn -DskipTests=true clean package
+mvn -DskipTests=true clean package
 ```
 
 #### Build the server
 
 ```bash
 cd flow-core
+export SECRET=[secret] STAGE=test
 mvn install
-export SECRET=[secret] STAGE=test && mvn clean package
+mvn -DskipTests=true clean package
 ```
 
 #### Upload the job and start server
 
-1. `./setupFlink.sh`
-
-## Test
-
-Tests use JUnit and Mockito. There are a combination of unit tests and integration tests. Each test suite for each domain should live beside the module they are testing.
-`export SECRET=[secret] STAGE=test && mvn test && unset SECRET STAGE`
-
-Run a single test
-`mvn -Dtest=AppTest test`
-
-Run a single test method
-`mvn -Dtest=AppTest#methodname test`
+```bash
+export STAGE=development
+`./setupFlink.sh`
+```
 
 ## API Reference
 
@@ -101,28 +94,20 @@ _Response_
 }
 ```
 
-## Error Codes
+## Testing
 
-| 4000                                                                                    | Unable to parse body of request. Needs to be JSON.                             |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| 4001                                                                                    | Missing user input.                                                            |
-| --------------------------------------------------------------------------------------- |
-| 4002                                                                                    | User input validation error.                                                   |
-| --------------------------------------------------------------------------------------- |
-| 4003                                                                                    | Unable to communicate with debezium                                            |
-| --------------------------------------------------------------------------------------- |
-| 4004                                                                                    | API key generation issue                                                       |
-| --------------------------------------------------------------------------------------- |
-| 4005                                                                                    | Kafka ACL rule creation issue                                                  |
-| --------------------------------------------------------------------------------------- |
-| 4006                                                                                    | Flink artefact generation issue. May be the result of faulty kafka connection. |
-| --------------------------------------------------------------------------------------- |
-| 4007                                                                                    | Issue running generated Flink job                                              |
-| --------------------------------------------------------------------------------------- |
-| 4008                                                                                    | Unexpected/unhandled error during request                                      |
-| --------------------------------------------------------------------------------------- |
-| 4009                                                                                    | Issue connecting to the database. Bad connection string or privileges.         |
-| --------------------------------------------------------------------------------------- |
+Tests use JUnit and Mockito. There are a combination of unit tests and integration tests. Each test suite for each domain should live beside the module they are testing.
+
+```bash
+`cd flow-core`
+`export SECRET=[secret] STAGE=test && mvn test`
+
+`mvn -Dtest=[suiteName] test` # Run a single test
+# E.g. `mvn -Dtest=CreateQueryEndpointTest test`
+
+`mvn -Dtest=[suiteName]\#[methodName] test` # Run a single method in a test
+# E.g. `mvn -Dtest=CreateQueryEndpointTest#testThrowsWithMissingConnectionStringQuery test`
+```
 
 ## Debug
 

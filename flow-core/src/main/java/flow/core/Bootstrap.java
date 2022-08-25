@@ -14,6 +14,15 @@ import com.google.gson.Gson;
 import flow.core.Connector.ConnectorClient;
 import flow.core.Connector.ConnectorResponseType;
 import flow.core.Connector.ConnectorSource;
+import flow.core.Errors.ClientErrorAuthorization;
+import flow.core.Errors.ClientErrorInvalidInput;
+import flow.core.Errors.ClientErrorJsonParseError;
+import flow.core.Errors.ClientErrorMissingInput;
+import flow.core.Errors.ErrorBase;
+import flow.core.Errors.ServerErrorBadConnection;
+import flow.core.Errors.ServerErrorKafkaACLGeneration;
+import flow.core.Errors.ServerErrorUnableToCreateDebeziumConnector;
+import flow.core.Errors.ServerErrorUnableToCreateFlinkJob;
 import flow.core.Job.JobClient;
 import flow.core.Job.JobResponseType;
 import flow.core.Job.JobSource;
@@ -57,6 +66,7 @@ public class Bootstrap {
     this.connectionChecker = new ConnectionChecker();
   }
 
+  // TODO generic function for errors
   public class AllFieldsPresentOutput {
 
     public Boolean status = true;
@@ -80,10 +90,6 @@ public class Bootstrap {
     return returning;
   }
 
-  protected JsonObject returnError(String message, int code) {
-    return new JsonObject().put("message", message).put("code", code);
-  }
-
   public void close() {
     this.server.close();
   }
@@ -105,7 +111,10 @@ public class Bootstrap {
           try {
             body = context.body();
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4000));
+            context.json(
+              new ClientErrorJsonParseError().toJson(e.getMessage())
+            );
+            return;
           }
 
           // Parse arguments into JSON for easier handling in resolver
@@ -123,7 +132,7 @@ public class Bootstrap {
                 allFieldsPresent(fields, args).missingFieldNames
               ) +
               " are missing.";
-            context.json(returnError(message, 4001));
+            context.json(new ClientErrorMissingInput().toJson(message));
             return;
           }
 
@@ -133,7 +142,8 @@ public class Bootstrap {
           try {
             validator.validateConnectionString(args.connectionString);
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4002));
+            context.json(new ClientErrorInvalidInput().toJson(e.getMessage()));
+            return;
           }
 
           // Validate environment id
@@ -141,7 +151,7 @@ public class Bootstrap {
             validator.validateStringInput(args.environmentId, "environmentId");
             validator.validateEnvironmentId(args.environmentId);
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4002));
+            context.json(new ClientErrorInvalidInput().toJson(e.getMessage()));
             return;
           }
           String formatted;
@@ -150,7 +160,7 @@ public class Bootstrap {
               connectorSource.build(args.connectionString, args.environmentId);
             System.out.println(formatted);
           } catch (Exception e) {
-            context.json(returnError(e.getMessage(), 4003));
+            context.json(new ErrorBase().toJson(e.getMessage()));
             return;
           }
 
@@ -158,13 +168,13 @@ public class Bootstrap {
           try {
             this.connectionChecker.canConnect(args.connectionString);
           } catch (RuntimeException e) {
-            context.json(returnError(e.getMessage(), 4009));
+            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           } catch (SQLException e) {
-            context.json(returnError(e.getMessage(), 4009));
+            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4009));
+            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           }
 
@@ -216,15 +226,15 @@ public class Bootstrap {
                 handler -> {
                   context.response().headers().remove("Authorization");
                   context.json(
-                    returnError(
-                      "Unable to communicate with debezium service. It may be offline.",
-                      4003
-                    )
+                    new ServerErrorUnableToCreateDebeziumConnector().toJson("")
                   );
                 }
               );
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4003));
+            context.json(
+              new ServerErrorUnableToCreateDebeziumConnector()
+              .toJson(e.getMessage())
+            );
           }
         }
       );
@@ -239,26 +249,22 @@ public class Bootstrap {
           try {
             body = context.body();
             // Extract header
-            System.out.println(context.request().headers());
             System.out.println(context.request().getHeader("Authorization"));
-            environmentId =
-              new JWT()
-              .decodeJWT(
-                  context.request().getHeader("Authorization").substring(7)
-                )
-                .environmentId;
+            try {
+              environmentId =
+                new JWT()
+                .decodeJWT(
+                    context.request().getHeader("Authorization").substring(7)
+                  )
+                  .environmentId;
+            } catch (Throwable e) {
+              context.json(
+                new ClientErrorAuthorization().toJson(e.getMessage())
+              );
+              return;
+            }
           } catch (Throwable e) {
-            System.out.println("throwing...");
-            context.json(
-              new JsonObject()
-                .put(
-                  "message",
-                  e.getMessage() != null
-                    ? e.getMessage()
-                    : "Unable to decode JWT"
-                )
-                .put("code", 4000)
-            );
+            context.json(new ErrorBase().toJson(e.getMessage()));
             return;
           }
           // Parse arguments into JSON for easier handling in resolver
@@ -275,7 +281,7 @@ public class Bootstrap {
                 allFieldsPresent(fields, args).missingFieldNames
               ) +
               " are missing.";
-            context.json(returnError(message, 4001));
+            context.json(new ClientErrorMissingInput().toJson(message));
             return;
           }
 
@@ -285,7 +291,7 @@ public class Bootstrap {
           try {
             validator.validateConnectionString(args.connectionString);
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4002));
+            context.json(new ClientErrorInvalidInput().toJson(e.getMessage()));
             return;
           }
           // Validate alphanumeric fields
@@ -298,7 +304,7 @@ public class Bootstrap {
             validator.validateStringInput(args.querySql, "querySql"); // separate CREATE SELECT validation function
             validator.validateStringInput(args.sinkSql, "sinkSql"); // separate CREATE TABLE validation function
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4002));
+            context.json(new ClientErrorInvalidInput().toJson(e.getMessage()));
             return;
           }
 
@@ -306,13 +312,13 @@ public class Bootstrap {
           try {
             this.connectionChecker.canConnect(args.connectionString);
           } catch (RuntimeException e) {
-            context.json(returnError(e.getMessage(), 4009));
+            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           } catch (SQLException e) {
-            context.json(returnError(e.getMessage(), 4009));
+            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4009));
+            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           }
 
@@ -321,7 +327,7 @@ public class Bootstrap {
           try {
             apiKeyForUser = apiKeyFactory.create();
           } catch (Exception e) {
-            context.json(returnError(e.getMessage(), 4004));
+            context.json(new ErrorBase().toJson(e.getMessage()));
             return;
           }
 
@@ -362,7 +368,7 @@ public class Bootstrap {
               );
             System.out.println(formattedSourceSqlTwo);
           } catch (Throwable e) {
-            context.json(returnError(e.getMessage(), 4006));
+            context.json(new ErrorBase().toJson(e.getMessage()));
             return;
           }
 
@@ -382,7 +388,7 @@ public class Bootstrap {
               );
             System.out.println(sinkString);
           } catch (Exception e) {
-            context.json(returnError(e.getMessage(), 4006));
+            context.json(new ErrorBase().toJson(e.getMessage()));
             return;
           }
 
@@ -429,7 +435,10 @@ public class Bootstrap {
                     | JSONException
                     | ParseException e
                   ) {
-                    context.json(returnError(e.getMessage(), 4007));
+                    context.json(
+                      new ServerErrorUnableToCreateFlinkJob()
+                      .toJson(e.getMessage())
+                    );
                     return;
                   }
 
@@ -456,7 +465,10 @@ public class Bootstrap {
                           kafkaClient.modifyACL(rule);
                           call.complete();
                         } catch (Exception e) {
-                          context.json(returnError(e.getMessage(), 4005));
+                          context.json(
+                            new ServerErrorKafkaACLGeneration()
+                            .toJson(e.getMessage())
+                          );
                           return;
                         }
                       }
@@ -466,11 +478,8 @@ public class Bootstrap {
                     return;
                   } else {
                     context.json(
-                      returnError(
-                        "Issue launching generated flink job::" +
-                        response.bodyAsString(),
-                        4007
-                      )
+                      new ServerErrorUnableToCreateFlinkJob()
+                      .toJson(response.bodyAsString())
                     );
                     return;
                   }
@@ -480,7 +489,8 @@ public class Bootstrap {
                 error -> {
                   System.out.println(error);
                   context.json(
-                    returnError("Issue launching generated flink job", 4007)
+                    new ServerErrorUnableToCreateFlinkJob()
+                    .toJson(error.getMessage())
                   );
                 }
               );
@@ -488,7 +498,7 @@ public class Bootstrap {
 
           } catch (Throwable e) {
             context.json(
-              returnError("Unexpected error during create query request", 4008)
+              new ServerErrorUnableToCreateFlinkJob().toJson(e.getMessage())
             );
           }
         }

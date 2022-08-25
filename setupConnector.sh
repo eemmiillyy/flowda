@@ -5,7 +5,7 @@ OUTPUT=$(curl POST -i -v http://localhost:8888/createConnection -H "Content-Type
     "environmentId": "simple"
 }')
 
-# Authorization:Bearer xxxx
+# Get authorization bearer token from response for next request
 TOKEN="$(echo "${OUTPUT//[[:space:]]/}"  tr -d '[:blank:]' | sed -e 's/{"data".*//' | sed -e 's/content.*//' | sed -e 's/.*200OK//' | sed -e 's/Bearer/& /g')"
 echo $TOKEN
 BEARER='Authorization'
@@ -22,7 +22,7 @@ do case $name in
   esac
 done
 
-# Run query
+# Launch job with simple or complex query depending on flag
 if [ ! -z "$cFlag" ]; then
   printf 'Running complex query...'
   RESP=$(curl -X POST -v http://localhost:8888/createQuery -H "$TOKEN" -H "Content-Type: application/json"  \
