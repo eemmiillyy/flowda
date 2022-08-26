@@ -1,9 +1,5 @@
 package flow.core.Errors;
 
-/**
- * 4007
- * "Internal server error. Unable to create job with Flink."
- */
 public class ServerErrorUnableToCreateFlinkJob extends ErrorBase {
 
   public ServerErrorUnableToCreateFlinkJob() {

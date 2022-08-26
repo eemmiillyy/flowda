@@ -162,4 +162,31 @@ public class CreateConnectionEndpointTest {
       "{\"message\":\"Client error. Missing user input:connectionString,environmentId are missing.\",\"code\":4001}"
     );
   }
+
+  @Test
+  public void testFailsWithInvalidEnvironmentIdInput() throws Throwable {
+    runTest(
+      "{\"connectionString\": \"mysql://u:p@127.0.0.1:3306/inventory\", \"environmentId\": \")))\"}",
+      "{\"message\":\"Client error. Invalid user input:VALIDATION EXCEPTION:Environment can only be alphanumeric characters with dashes and underscores.\",\"code\":4002}"
+    );
+  }
+
+  @Test
+  public void testFailsWithInvalidConnectionStringInput() throws Throwable {
+    runTest(
+      "{\"connectionString\": \"://u:p@127.0.0.1:3306/inventory\", \"environmentId\": \"u\"}",
+      "{\"message\":\"Client error. Invalid user input:VALIDATION EXCEPTION: Connection string does not use a valid mysql protocol. A valid protocol looks like: mysql://...\",\"code\":4002}"
+    );
+  }
+
+  @Test
+  public void ServerErrorUnableToCreateDebeziumConnector() throws Throwable {
+    this.mockServerDebeziumBeforeInit.close();
+    runTest(
+      "{\"connectionString\": \"mysql://u:p@127.0.0.1:3306/inventory\", \"environmentId\": \"u\"}",
+      "{\"message\":\"Internal server error. Unable to create connector with debezium:\",\"code\":4003}"
+    );
+  }
+  // TODO test bad connection
+
 }

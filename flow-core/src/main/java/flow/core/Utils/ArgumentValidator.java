@@ -77,6 +77,7 @@ public class ArgumentValidator {
    * The environment id is the same user for kafka,
    * and we want to make sure they cannot escalate their privileges
    * by submitting the same environment id as the admin user from settings.
+   * Debezium will respond with connector already exists if the environmentId already exists.
    */
   public boolean validateEnvironmentId(String environmentId) {
     Pattern rootUserName = Pattern.compile(
@@ -88,6 +89,20 @@ public class ArgumentValidator {
       throw new ValidationError(
         String.format(
           "VALIDATION EXCEPTION:Environment id %s is taken.",
+          environmentId
+        )
+      );
+    }
+    Pattern alphanumericWithSpecialCharacters = Pattern.compile(
+      "^[a-zA-Z0-9-_]*$"
+    );
+    Matcher alphaNumericMatcher = alphanumericWithSpecialCharacters.matcher(
+      environmentId
+    );
+    if (!alphaNumericMatcher.matches()) {
+      throw new ValidationError(
+        String.format(
+          "VALIDATION EXCEPTION:Environment can only be alphanumeric characters with dashes and underscores.",
           environmentId
         )
       );

@@ -120,7 +120,8 @@ public class CreateQueryEndpointTest {
     this.mockedAppServer.close();
   }
 
-  public void runTest(String input, String output) throws InterruptedException {
+  public void runTest(String input, String output, String jwt)
+    throws InterruptedException {
     this.futureApp.onSuccess(
         app -> {
           System.out.println("APP UP" + app);
@@ -132,7 +133,7 @@ public class CreateQueryEndpointTest {
                 WebClient client = WebClient.create(vertx);
                 String testJWT = "";
                 try {
-                  testJWT = new JWT().create("tester");
+                  testJWT = jwt == "" ? new JWT().create("tester") : jwt;
                 } catch (
                   InvalidKeyException
                   | NoSuchAlgorithmException
@@ -175,7 +176,8 @@ public class CreateQueryEndpointTest {
     throws InterruptedException {
     runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "\"jobId\":\"mockJobId\""
+      "\"jobId\":\"mockJobId\"",
+      ""
     );
   }
 
@@ -184,7 +186,8 @@ public class CreateQueryEndpointTest {
     throws InterruptedException {
     runTest(
       "{\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"Client error. Missing user input:connectionString are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:connectionString are missing.\",\"code\":4001}",
+      ""
     );
   }
 
@@ -193,7 +196,8 @@ public class CreateQueryEndpointTest {
     throws InterruptedException {
     runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\", \"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"Client error. Missing user input:sourceSql are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:sourceSql are missing.\",\"code\":4001}",
+      ""
     );
   }
 
@@ -202,7 +206,8 @@ public class CreateQueryEndpointTest {
     throws InterruptedException {
     runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"Client error. Missing user input:sourceSqlTableTwo are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:sourceSqlTableTwo are missing.\",\"code\":4001}",
+      ""
     );
   }
 
@@ -210,7 +215,8 @@ public class CreateQueryEndpointTest {
   public void testThrowsWithMissingQuerySql() throws InterruptedException {
     runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
-      "{\"message\":\"Client error. Missing user input:querySql are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:querySql are missing.\",\"code\":4001}",
+      ""
     );
   }
 
@@ -218,7 +224,8 @@ public class CreateQueryEndpointTest {
   public void testThrowsWithMissingSinkSqlQuery() throws InterruptedException {
     runTest(
       "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\" }",
-      "{\"message\":\"Client error. Missing user input:sinkSql are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:sinkSql are missing.\",\"code\":4001}",
+      ""
     );
   }
 
@@ -226,7 +233,51 @@ public class CreateQueryEndpointTest {
   public void testThrowsWithMissingArguments() throws InterruptedException {
     runTest(
       "{}",
-      "{\"message\":\"Client error. Missing user input:connectionString,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}"
+      "{\"message\":\"Client error. Missing user input:connectionString,sourceSql,sourceSqlTableTwo,querySql,sinkSql are missing.\",\"code\":4001}",
+      ""
     );
   }
+
+  @Test
+  public void testThrowsWithInvalidConnectionStringArguments()
+    throws InterruptedException {
+    runTest(
+      "{\"connectionString\": \"://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+      "{\"message\":\"Client error. Invalid user input:VALIDATION EXCEPTION: Connection string does not use a valid mysql protocol. A valid protocol looks like: mysql://...\",\"code\":4002}",
+      ""
+    );
+  }
+
+  @Test
+  public void testThrowsWithInvalidSqlIfContainsInvalidCharacters()
+    throws InterruptedException {
+    runTest(
+      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND);\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+      "{\"message\":\"Client error. Invalid user input:VALIDATION EXCEPTION: sourceSql must be alpha numeric characters only, as well as (),_-.'\",\"code\":4002}",
+      ""
+    );
+  }
+
+  @Test
+  public void testThrowsServerErrorUnableToCreateFlinkJob()
+    throws InterruptedException {
+    this.mockServerFlinkBeforeInit.close();
+    runTest(
+      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+      "{\"message\":\"Internal server error. Unable to create job with Flink:Connection refused: localhost/127.0.0.1:9001\",\"code\":4007}",
+      ""
+    );
+  }
+
+  @Test
+  public void testThrowsClientErrorAuthorization() throws InterruptedException {
+    runTest(
+      "{\"connectionString\": \"mysql://debezium:dbz@mysql:3306/inventory\",\"environmentId\": \"tester\",\"sourceSql\": \"CREATE TABLE products_on_hand (quantity INT, product_id INT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\",\"sourceSqlTableTwo\": \"CREATE TABLE orders (order_number BIGINT, purchaser BIGINT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM 'value.source.timestamp' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND)\", \"querySql\": \"SELECT SUM(quantity) as summed FROM products_on_hand\",\"sinkSql\": \"CREATE TABLE custom_output_table_name (summed INT)\" }",
+      "{\"message\":\"Client error. Invalid authorization jwt header:JWT is expired\",\"code\":4005}",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnZpcm9ubWVudElkIjoic2VhQWFhYUFhYWFhYWEiLCJleHAiOiIyMDIyLTA4LTA5In0.k-ylXHwdIfBsRK2glX70d_onBP9xNSp3mAJVjl4a7Gc"
+    );
+  }
+  // TODO test for ACL generation
+  // TODO test bad connection
+
 }

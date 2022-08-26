@@ -145,15 +145,16 @@ Verb: `POST`
 
 Response Code: `200`
 
-Creates a debezium/kafka connector for the given database. Introspects
-the database and creates a topic in the kafka cluster with `environmentId.dbName`. There is no check for whether the database is reachable. That needs to be manually ensured. There is also no check to the permissions. Needs to be manually run. Returns a JWT that is set as a cookie to be used for the next request.
+Creates a debezium connector for the given database. Introspects
+the database and creates a topic in the kafka cluster with `environmentId.dbName` where dbName is inferred from the connection string. There is currently no check for whether the database is reachable or whether the user has root access to the database - this code needs to be commented back in in production.
+This response returns a JWT that is set as an "Authorization" header to be used for the next request.
 
 _Request_
 
 ```json
 {
   "connectionString": "mysql://user:pass@mysql:3306/dbname",
-  "environmentId": "uniqueIdToUSeAsKafkaTopic"
+  "environmentId": "environmentId"
 }
 ```
 
@@ -161,11 +162,18 @@ _Response_
 
 ```json
 {
-  "data": "uniqueIdToUSeAsKafkaTopic-connector"
+  "data": "environmentId-connector"
 }
 ```
 
-> A Json Web Token will be returned in the response header and needs to be used as the Authorization: Bearer <token> in the next request.
+Possible errors:
+
+- ClientErrorJsonParseError (4000)
+- ClientErrorMissingInput (4001)
+- ClientErrorInvalidInput (4002)
+- ServerErrorUnableToCreateDebeziumConnector (4003)
+- ServerErrorBadConnection (4008)
+- UnknownError (4999)
 
 ---
 
@@ -175,8 +183,11 @@ Verb: `POST`
 
 Response Code: `200`
 
-Launches a flink job with the given source, aggregate, and sink table. The result of the aggregate will stream to the environmentId.dbName.outputTableName topic. db name inferred from connection string. tablename will be inferred from source statement. agreggateSql tablename needs to match the source. output table name will be inferred from the sink statement. Returns an access token that will be the users password for the kafka ACL for
-the topic. DO NOT add semi colons to end of the input
+Launches a flink job with the given connection string, two sources, query sql, and sink sql. The result of the query will stream to the table name specified in the `sinkSql` argument. topic. The database name will be inferred from connection string.
+
+> The column in the `sinkSql` argument needs to match the column created in the `querySql` argument.
+> Both `sourceSql` and `sourceSqlTableTwo` arguments need to be specified for two different tables regardless of if there is a join in the query.
+> Returns an access token that will be the user's password for the kafka ACL for the topic.
 
 _Request_
 
@@ -196,10 +207,21 @@ _Response_
 {
   "name": "successfully started Flink job.",
   "environmentId": "XXXX",
-  "ApiKey": "XXXX",
+  "apiKey": "XXXX",
   "jobId": "XXXX"
 }
 ```
+
+Possible errors:
+
+- ClientErrorJsonParseError (4000)
+- ClientErrorMissingInput (4001)
+- ClientErrorInvalidInput (4002)
+- ServerErrorKafkaACLGeneration (4004)
+- ClientErrorAuthorization (4005)
+- ServerErrorUnableToCreateFlinkJob (4007)
+- ServerErrorBadConnection (4008)
+- UnknownError (4999)
 
 <a name="settings"/>
 
