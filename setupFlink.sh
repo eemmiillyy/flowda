@@ -7,7 +7,7 @@ JOBID=$(echo $OUTPUT |sed -e 's/",.*//' |sed 's/.*flink-web-upload\///')
 echo $JOBID
 
 if [ -z ${JOBID} ]; then
-    echo "Issue uploading job to flink! If broken pipe is output, retry in a few seconds. If another error is show, make sure that the flink job has been packaged and output to flow.flink.job-1.0-SNAPSHOT.jar and that services are up and healthy." 
+    echo "Issue uploading job to flink! If 'broken pipe' or 'Connection reset by peer' is output, retry in a few seconds. If another error is show, make sure that the flink job has been packaged and output to flow.flink.job-1.0-SNAPSHOT.jar and that services are up and healthy." 
     exit 1
 fi
 

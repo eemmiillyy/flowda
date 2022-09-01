@@ -46,6 +46,7 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - KAFKA_CFG_LISTENERS=INTERNAL://:9092,CLIENT://:9093,
+      # When deploying to production, the client advertised listener localhost needs to become the IP of the machine.
       - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,CLIENT://localhost:9093
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,CLIENT:SASL_PLAINTEXT
@@ -69,7 +70,7 @@ services:
     #   - "./keystore/kafka.server.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
     #   - "./truststore/kafka.server.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
   mysql:
-    # mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory
+    # mysql://mysqluser:mysqlpw@34.141.31.101:3306/inventory
     # mysql://debezium:dbz@127.0.0.1:3306/inventory
     image: quay.io/debezium/example-mysql:1.9
     ports:
@@ -79,7 +80,7 @@ services:
       - MYSQL_USER=mysqluser
       - MYSQL_PASSWORD=mysqlpw
   mysqltwo:
-    # mysql://mysqluser:mysqlpw@127.0.0.1:3307/inventory
+    # mysql://mysqluser:mysqlpw@34.141.31.101:3307/inventory
     # mysql://debezium:dbz@127.0.0.1:3306/inventory
     image: quay.io/debezium/example-mysql:1.9
     ports:

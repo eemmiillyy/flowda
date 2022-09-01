@@ -1,0 +1,14 @@
+[
+  { "before": { "summed": 91 }, "after": null, "op": "d" },
+  { "before": null, "after": { "summed": 84 }, "op": "c" },
+  { "before": { "summed": 84 }, "after": null, "op": "d" },
+  { "before": null, "after": { "summed": 114 }, "op": "c" },
+  { "before": { "summed": 114 }, "after": null, "op": "d" },
+  { "before": null, "after": { "summed": 84 }, "op": "c" },
+  { "before": { "summed": 84 }, "after": null, "op": "d" },
+  { "before": null, "after": { "summed": 86 }, "op": "c" },
+  { "before": { "summed": 86 }, "after": null, "op": "d" },
+  { "before": null, "after": { "summed": 84 }, "op": "c" },
+  { "before": { "summed": 84 }, "after": null, "op": "d" },
+  { "before": null, "after": { "summed": 124 }, "op": "c" }
+]

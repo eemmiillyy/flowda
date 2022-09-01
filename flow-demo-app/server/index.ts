@@ -26,8 +26,9 @@ const apiKey = "bleepbloop"; // May need changing
 const topicName = environmentId + ".inventory.custom_output_table_name";
 
 const kafkaClient = new Kafka({
+  // Change the host to the remote IP of the machine for testing production
   brokers: ["localhost:9093"],
-  clientId,
+  clientId: clientId,
   sasl: {
     mechanism: "scram-sha-256",
     username: clientId,
@@ -39,7 +40,7 @@ const kafkaClient = new Kafka({
 });
 
 // TODO if this file does not already exist on disk, instead of failing, create it.
-const p = path.join(__dirname, clientId + ".json");
+const p = path.join(__dirname, environmentId + ".json");
 
 const writeToFile = (message: string) => {
   if (!fs.existsSync(p) || fs.readFileSync(p, "utf-8") === "") {

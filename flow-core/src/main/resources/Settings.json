@@ -11,7 +11,7 @@
             "bootstrap": {
               "serversExternal": "localhost:9093",
               "serversInternal": "kafka:9092",
-              "containerName": "flowda_kafka_1",
+              "containerName": "flowda-kafka-1",
               "pathToBin": "opt/bitnami/kafka/bin"
             },
             "sasl": {
@@ -21,14 +21,14 @@
           },
           "flink": {
             "servers": "http://localhost:8081",
-            "jar": "/jars/f21b0bf8-7a9f-4d69-8bdd-4c86e237efff_flow.flink.job-1.0-SNAPSHOT.jar/run"
+            "jar": "/jars/53d6b079-473b-4b1a-a8a7-ca9ab5d16c80_flow.flink.job-1.0-SNAPSHOT.jar/run"
           },
           "debezium": {
-            "containerName": "flowda_connect_1",
+            "containerName": "flowda-connect-1",
             "servers": "http://localhost:8083"
           },
           "zookeeper": {
-            "containerName": "flowda_zookeeper_1",
+            "containerName": "flowda-zookeeper-1",
             "servers": "localhost:2181"
           }
         }
