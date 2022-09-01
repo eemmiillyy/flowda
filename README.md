@@ -14,6 +14,8 @@
 
 - [Debug](#debug)
 
+- [Deployment](#deployment)
+
 <a name="development"/>
 
 ## Development
@@ -284,23 +286,30 @@ kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SC
 kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
 ```
 
-## Deploying
+<a name="deployment"/>
 
-- ssh into the remote gcp instance
-- pull the latest code changes
-- build the JAR files
-- Change docker compose file: kafka advertised listener cannot be localhost (~L49) to IP of machine.
-  - Can get IP of machine with `gcloud compute instances list` locally
-- start the services
-  > This means that kcat reading from topics will not work from inside the remote machine itself.
-- Run setupFlink.sh with STAGE=production
-- Edit Settings.json with new job id
-- Re run setupFlink.sh so app is launched with new Settings.json
-- Run setupConnector.sh
-- Test output topic is working with:
-  ```bash
-  kcat -b 34.141.31.101:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -t simple.inventory.custom_output_table_name
-  ```
-- Test output topic is working with demo app by changing line 30 in `server/index.ts` to IP of the remote
-  machine instead of localhost.
-- Connect to the remote database with something like table plus and change a row in `products_on_hand` table to ensure that the output in the demo is updated.
+## Deployment
+
+1. ssh into the remote gcp instance
+2. pull the latest code changes
+3. build the JAR files
+4. Change docker compose file: kafka advertised listener cannot be localhost (~L49) to IP of machine.
+
+- Can get IP of machine with `gcloud compute instances list` locally
+- This means that kcat reading from topics will not work from inside the remote machine itself after this change
+
+5. start the services
+
+6. Run setupFlink.sh with STAGE=production
+7. Edit Settings.json with new job id (Manual because this part of the script fails in production - WIP)
+8. Re run setupFlink.sh so app is launched with new Settings.json
+9. Run setupConnector.sh
+10. Test output topic is working with:
+
+```bash
+kcat -b 34.141.31.101:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -t simple.inventory.custom_output_table_name
+```
+
+11. Test output topic is working with demo app by changing line 30 in `server/index.ts` to IP of the remote
+    machine instead of localhost.
+12. Connect to the remote database with something like table plus and change a row in `products_on_hand` table to ensure that the output in the demo is updated.
