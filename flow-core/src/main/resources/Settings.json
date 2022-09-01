@@ -29,7 +29,8 @@
           },
           "zookeeper": {
             "containerName": "flowda-zookeeper-1",
-            "servers": "localhost:2181"
+            "serversExternal": "localhost:2181",
+            "serversInternal": "zookeeper:2181"
           }
         }
       },
