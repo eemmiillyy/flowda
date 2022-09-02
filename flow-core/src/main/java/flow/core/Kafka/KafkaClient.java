@@ -55,7 +55,7 @@ public class KafkaClient {
     String groupAccess = createGroupAccess(environmentId);
 
     return String.format(
-      "docker exec %s bash -c \"cd %s && %s && %s && %s\"",
+      "sudo docker exec %s bash -c \"cd %s && %s && %s && %s\"",
       this.settings.settings.services.kafka.bootstrap.containerName,
       this.settings.settings.services.kafka.bootstrap.pathToBin,
       kafkaUser,
