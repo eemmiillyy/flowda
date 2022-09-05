@@ -14,6 +14,7 @@ public class KafkaClient {
    */
 
   public KafkaConsumer<String, String> create(String groupId) throws Exception {
+    String kafka_user = System.getenv("KAFKA_USER");
     String kafka_password = System.getenv("KAFKA_PASSWORD");
     // Ensure each kafka consumer belongs to a new consumer group
     String randomGroupId = groupId;
@@ -21,7 +22,7 @@ public class KafkaClient {
     // TODO take from settings
     String login = String.format(
       "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";",
-      "emily",
+      kafka_user,
       kafka_password
     );
     // Create kafka client

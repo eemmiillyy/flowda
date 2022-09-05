@@ -23,7 +23,10 @@
 #### 1. Set up environment variables
 
 Get the `SECRET` environment variable from the maintainer.
-Get the `KAFKA_PASSWORD`environment variable from the maintainer, create a .env, and set the value.
+Get the `KAFKA_USER`environment variable from the maintainer.
+Get the `KAFKA_PASSWORD`environment variable from the maintainer.
+
+Create a .env with `KAFKA_USER` & `KAFKA_PASSWORD`. This file needs to exist because that is what docker uses when starting the services. These variables should also be exported to the console when running any application outisde of `flow-core`, so `flow-benchmark` and `flow-demo-app`.
 
 #### 2. Start the services
 
@@ -79,7 +82,7 @@ The benchmark suites require that the user service application is running in dev
 
 #### 1. Restart the docker services for a clean slate
 
-> Before doing this, make sure the variable `KAFKA_PASSWORD` is set as an environment variable. It should be the same value decrypted from settings using the `SECRET` env.
+> Before doing this, make sure `STAGE`, `SECRET`, `KAFKA_USER` & `KAFKA_PASSWORD` have been exported in the console.
 
 ```bash
 docker-compose down
@@ -282,18 +285,18 @@ java -jar target/flow.core-1.0-SNAPSHOT.jar
 These commands are helpful if you want to look directly at the kafka topic data.
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=[PasswordDecryptedFromSettings.json] -t simple.inventory.custom_output_table_name
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[UserInPlaintextFromSettings.json] -X sasl.password=[PasswordDecryptedFromSettings.json] -t simple.inventory.custom_output_table_name
 ```
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=[PasswordDecryptedFromSettings.json] -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
+kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[UserInPlaintextFromSettings.json] -X sasl.password=[PasswordDecryptedFromSettings.json] -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
 ```
 
 <a name="deployment"/>
 
 ## Deployment
 
-> Get the password to the remote DB environment variable `KAFKA_PASSWORD` from the maintainer for testing, add it to the .env file and export it.
+> Make sure the `KAFKA_USER` & `KAFKA_PASSWORD` variables are exported to the console.
 
 1. ssh into the remote gcp instance
 2. pull the latest code changes
