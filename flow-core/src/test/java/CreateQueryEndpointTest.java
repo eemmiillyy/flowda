@@ -3,7 +3,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -18,8 +17,6 @@ import flow.core.Bootstrap;
 import flow.core.Job.JobSource;
 import flow.core.Kafka.KafkaClient;
 import flow.core.Settings.Settings;
-import flow.core.Utils.ConnectionChecker;
-import flow.core.Utils.ConnectionChecker.AccessDeniedError;
 import flow.core.Utils.JWT;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -35,7 +32,6 @@ import io.vertx.junit5.VertxTestContext;
 public class CreateQueryEndpointTest {
 
   Bootstrap mockedAppServer;
-  ConnectionChecker connectionCheckerStub;
   Future<HttpServer> mockServerFlink;
   Future<HttpServer> futureApp;
   HttpServer mockServerFlinkBeforeInit;
@@ -46,21 +42,10 @@ public class CreateQueryEndpointTest {
   @BeforeEach
   public void setup(TestInfo testInfo) throws Exception {
     this.testContext = new VertxTestContext();
-    stubConnectionChecker();
     startFlinkServerMock();
     JobSource flinkStub = createFlinkStub();
     KafkaClient kafkaShellStub = createKafkaShellStub();
     launchAppWithTestSettings(kafkaShellStub, flinkStub);
-  }
-
-  public void stubConnectionChecker()
-    throws AccessDeniedError, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
-    ConnectionChecker checkConn = new ConnectionChecker();
-    this.connectionCheckerStub = Mockito.spy(checkConn);
-    Mockito
-      .doReturn(true)
-      .when(connectionCheckerStub)
-      .canConnect(Mockito.any());
   }
 
   public JobSource createFlinkStub() throws Exception {
@@ -87,7 +72,6 @@ public class CreateQueryEndpointTest {
     throws IOException, InterruptedException {
     Bootstrap bootstrap = new Bootstrap();
     this.mockedAppServer = Mockito.spy(bootstrap);
-    this.mockedAppServer.connectionChecker = this.connectionCheckerStub;
     this.mockedAppServer.kafkaClient = kafkaShellStub;
     this.mockedAppServer.jobSource = flinkStub;
     this.futureApp = this.mockedAppServer.start();

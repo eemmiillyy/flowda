@@ -3,7 +3,6 @@ package flow.core;
 import java.lang.reflect.Field;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 
@@ -19,7 +18,6 @@ import flow.core.Errors.ClientErrorInvalidInput;
 import flow.core.Errors.ClientErrorJsonParseError;
 import flow.core.Errors.ClientErrorMissingInput;
 import flow.core.Errors.ErrorBase;
-import flow.core.Errors.ServerErrorBadConnection;
 import flow.core.Errors.ServerErrorKafkaACLGeneration;
 import flow.core.Errors.ServerErrorUnableToCreateDebeziumConnector;
 import flow.core.Errors.ServerErrorUnableToCreateFlinkJob;
@@ -30,7 +28,6 @@ import flow.core.Kafka.KafkaClient;
 import flow.core.Settings.Settings;
 import flow.core.Utils.ApiKey;
 import flow.core.Utils.ArgumentValidator;
-import flow.core.Utils.ConnectionChecker;
 import flow.core.Utils.ConnectionStringParser;
 import flow.core.Utils.ConnectionStringParser.ConnectionStringParsed;
 import flow.core.Utils.JWT;
@@ -50,7 +47,6 @@ public class Bootstrap {
   public ConnectorSource connectorSource;
   public JobClient jobClient;
   public ConnectorClient connectorClient;
-  public ConnectionChecker connectionChecker;
   public static WebClient client = WebClient.create(Vertx.vertx());
   io.vertx.core.http.HttpServer server;
   Vertx vertexInstance;
@@ -63,7 +59,6 @@ public class Bootstrap {
     this.connectorSource = new ConnectorSource(this.settings);
     this.jobClient = new JobClient(this.settings);
     this.connectorClient = new ConnectorClient(this.settings);
-    this.connectionChecker = new ConnectionChecker();
   }
 
   // TODO generic function for errors
@@ -161,20 +156,6 @@ public class Bootstrap {
             System.out.println(formatted);
           } catch (Exception e) {
             context.json(new ErrorBase().toJson(e.getMessage()));
-            return;
-          }
-
-          // Check that the user actually has a valid connection string and root access
-          try {
-            this.connectionChecker.canConnect(args.connectionString);
-          } catch (RuntimeException e) {
-            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
-            return;
-          } catch (SQLException e) {
-            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
-            return;
-          } catch (Throwable e) {
-            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           }
 
@@ -305,20 +286,6 @@ public class Bootstrap {
             validator.validateStringInput(args.sinkSql, "sinkSql"); // separate CREATE TABLE validation function
           } catch (Throwable e) {
             context.json(new ClientErrorInvalidInput().toJson(e.getMessage()));
-            return;
-          }
-
-          // Check that the user actually has a valid connection string and root access
-          try {
-            this.connectionChecker.canConnect(args.connectionString);
-          } catch (RuntimeException e) {
-            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
-            return;
-          } catch (SQLException e) {
-            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
-            return;
-          } catch (Throwable e) {
-            context.json(new ServerErrorBadConnection().toJson(e.getMessage()));
             return;
           }
 

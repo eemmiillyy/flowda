@@ -13,8 +13,6 @@ import org.mockito.Mockito;
 
 import flow.core.Bootstrap;
 import flow.core.Settings.Settings;
-import flow.core.Utils.ConnectionChecker;
-import flow.core.Utils.ConnectionChecker.AccessDeniedError;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -29,7 +27,6 @@ import io.vertx.junit5.VertxTestContext;
 public class CreateConnectionEndpointTest {
 
   Bootstrap mockedAppServer;
-  ConnectionChecker connectionCheckerStub;
   Future<HttpServer> futureApp;
   Future<HttpServer> mockServerFlink;
   Future<HttpServer> mockServerDebezium;
@@ -41,28 +38,16 @@ public class CreateConnectionEndpointTest {
 
   @BeforeEach
   public void setup(TestInfo testInfo)
-    throws IOException, InterruptedException, AccessDeniedError, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
+    throws IOException, InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
     this.testContext = new VertxTestContext();
-    stubConnectionChecker();
     startDebeziumServerMock();
     launchAppWithTestSettings();
-  }
-
-  public void stubConnectionChecker()
-    throws AccessDeniedError, ClassNotFoundException, InstantiationException, IllegalAccessException, SQLException {
-    ConnectionChecker checkConn = new ConnectionChecker();
-    this.connectionCheckerStub = Mockito.spy(checkConn);
-    Mockito
-      .doReturn(true)
-      .when(connectionCheckerStub)
-      .canConnect(Mockito.any());
   }
 
   public void launchAppWithTestSettings()
     throws IOException, InterruptedException {
     Bootstrap bootstrap = new Bootstrap();
     this.mockedAppServer = Mockito.spy(bootstrap);
-    this.mockedAppServer.connectionChecker = this.connectionCheckerStub;
     this.futureApp = this.mockedAppServer.start();
   }
 
