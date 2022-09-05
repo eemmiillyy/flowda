@@ -22,7 +22,8 @@
 
 #### 1. Set up environment variables
 
-Get the SECRET environment variable from the maintainer.
+Get the `SECRET` environment variable from the maintainer.
+Get the `KAFKA_PASSWORD`environment variable from the maintainer, create a .env, and set the value.
 
 #### 2. Start the services
 
@@ -77,6 +78,8 @@ mvn -Dtest=[suiteName]\#[methodName] test # Run a single method in a test (Remov
 The benchmark suites require that the user service application is running in development mode. It makes use of the two mysql databases defined in the docker-compose file.
 
 #### 1. Restart the docker services for a clean slate
+
+> Before doing this, make sure the variable `KAFKA_PASSWORD` is set as an environment variable. It should be the same value decrypted from settings using the `SECRET` env.
 
 ```bash
 docker-compose down
@@ -279,16 +282,18 @@ java -jar target/flow.core-1.0-SNAPSHOT.jar
 These commands are helpful if you want to look directly at the kafka topic data.
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -t simple.inventory.custom_output_table_name
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=[PasswordDecryptedFromSettings.json] -t simple.inventory.custom_output_table_name
 ```
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
+kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=[PasswordDecryptedFromSettings.json] -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
 ```
 
 <a name="deployment"/>
 
 ## Deployment
+
+> Get the password to the remote DB environment variable `KAFKA_PASSWORD` from the maintainer for testing, add it to the .env file and export it.
 
 1. ssh into the remote gcp instance
 2. pull the latest code changes
@@ -305,12 +310,12 @@ kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SH
 6. Run setupFlink.sh with STAGE=production
 7. Edit Settings.json with new job id (Manual because this part of the script fails in production - WIP)
 8. Re run setupFlink.sh so app is launched with new Settings.json
-   > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (`mysql://root:bleepbloop@34.141.36.214:3306/inventory)
+   > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (`mysql://root:[XXXX]@34.141.36.214:3306/inventory)
 9. Run setupConnector.sh
 10. Test output topic is working with:
 
 ```bash
-kcat -b 34.141.31.101:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=emily -X sasl.password=bleepbloop -t simple.inventory.custom_output_table_name
+kcat -b 34.141.31.101:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=complex -X sasl.password=+LIYmLdO23OTVUywuX2PHLStu1nCoYSlQ/syChRj8oU= -t complex.inventory.custom_output_table_name
 ```
 
 11. Test output topic is working with demo app by changing line 30 in `server/index.ts` to IP of the remote
