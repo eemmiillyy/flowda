@@ -53,9 +53,12 @@ public class KafkaClient {
     String kafkaUser = createKafkaUser(environmentId, password);
     String topicAccess = createTopicAccess(environmentId);
     String groupAccess = createGroupAccess(environmentId);
+    String stage = System.getenv("STAGE");
 
     return String.format(
-      "sudo docker exec %s bash -c \"cd %s && %s && %s && %s\"",
+      stage == "production"
+        ? "sudo docker exec %s bash -c \"cd %s && %s && %s && %s\""
+        : "docker exec %s bash -c \"cd %s && %s && %s && %s\"",
       this.settings.settings.services.kafka.bootstrap.containerName,
       this.settings.settings.services.kafka.bootstrap.pathToBin,
       kafkaUser,
