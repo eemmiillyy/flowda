@@ -303,6 +303,7 @@ kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SH
 6. Run setupFlink.sh with STAGE=production
 7. Edit Settings.json with new job id (Manual because this part of the script fails in production - WIP)
 8. Re run setupFlink.sh so app is launched with new Settings.json
+   > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (mysql://root:bleepbloop@34.141.36.214:3306/inventory)
 9. Run setupConnector.sh
 10. Test output topic is working with:
 
