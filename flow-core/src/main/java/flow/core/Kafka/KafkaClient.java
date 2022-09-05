@@ -56,7 +56,7 @@ public class KafkaClient {
     String stage = System.getenv("STAGE");
 
     return String.format(
-      stage == "production"
+      stage.equals("production")
         ? "sudo docker exec %s bash -c \"cd %s && %s && %s && %s\""
         : "docker exec %s bash -c \"cd %s && %s && %s && %s\"",
       this.settings.settings.services.kafka.bootstrap.containerName,
