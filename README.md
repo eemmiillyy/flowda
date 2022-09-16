@@ -93,9 +93,9 @@ docker-compose up -d
 
 ```bash
 ./setupFlink.sh # If broken pipe shows in terminal, services are not ready. Wait a few seconds and re rerun
-./setupConnector.sh # Sets up the simple query benchmark
-# Change the environmentId in `setupConnector.sh` to "complex" and the connectionString in the first post request to "mysqltwo" in order to use the second database. Note that this has to match what is in `BenchmarkRUnner.java`
-./setupConnector.sh -c # Sets up the complex query benchmark
+./launchJob.sh # Sets up the simple query benchmark
+# Change the environmentId in `launchJob.sh` to "complex" and the connectionString in the first post request to "mysqltwo" in order to use the second database. Note that this has to match what is in `BenchmarkRUnner.java`
+./launchJob.sh -c # Sets up the complex query benchmark
 ```
 
 #### 3. Build the benchmarking suite
@@ -121,9 +121,9 @@ java -jar target/benchmarks.jar
 
 This demo is set up to work with the default super user and the simple query job. It is designed to showcase how a user could use the API key and username from the user service's response to connect to the public Kafka cluster to display processed results in their own app.
 
-A connector and corresponding job needs to be running in order for the demo to work. For this you can run `setupFlink.sh` which will create a connector. After that, you can launch the job with `setupConnector.sh`. If you run `setupConnector.sh` without a `-c` flag, the default simple query will be used. If you want to change the name of the `environmentId` make sure that you also change it inside `server/index.ts`.
+A connector and corresponding job needs to be running in order for the demo to work. For this you can run `setupFlink.sh` which will create a connector. After that, you can launch the job with `launchJob.sh`. If you run `launchJob.sh` without a `-c` flag, the default simple query will be used. If you want to change the name of the `environmentId` make sure that you also change it inside `server/index.ts`.
 
-> If you want to test out the user and API key the user service responds with, you can copy the `environmentId` and `apiKey` from `setupConnector.sh` response into `server/index.ts`.
+> If you want to test out the user and API key the user service responds with, you can copy the `environmentId` and `apiKey` from `launchJob.sh` response into `server/index.ts`.
 
 #### Running the server (localhost:4000)
 
@@ -314,7 +314,7 @@ kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SH
 7. Edit Settings.json with new job id (Manual because this part of the script fails in production - WIP)
 8. Re run setupFlink.sh so app is launched with new Settings.json
    > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (`mysql://root:[XXXX]@34.141.36.214:3306/inventory)
-9. Run setupConnector.sh
+9. Run launchJob.sh
 10. Test output topic is working with:
 
 ```bash
