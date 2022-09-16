@@ -20,18 +20,17 @@ const wsServer = new WebSocketServer({
 });
 
 // Kafka consumer config
-const environmentId = "simple"; // May need changing
-const clientId = "[UserInPlaintextFromSettings.json]"; // May need changing - if so, create a new file called [clientId].json with an empty array ([])
-const apiKey = "[PasswordDecryptedFromSettings.json]"; // Needs changing
+const environmentId = "complex"; // May need changing - if so, create a new file called [clientId].json with an empty array ([])
+const apiKey = "t/EoWd2HQ8/zz1+pLKvk5QTqzTjoqxv272mutRP4Aaw="; // Needs changing
 const topicName = environmentId + ".inventory.custom_output_table_name";
 
 const kafkaClient = new Kafka({
   // Change the host to the remote IP of the machine for testing production
   brokers: ["localhost:9093"],
-  clientId: clientId,
+  clientId: environmentId,
   sasl: {
     mechanism: "scram-sha-256",
-    username: clientId,
+    username: environmentId,
     password: apiKey,
   },
   connectionTimeout: 6000,
@@ -61,7 +60,7 @@ const writeToFile = (message: string) => {
   }
 };
 
-const consumer = kafkaClient.consumer({ groupId: clientId });
+const consumer = kafkaClient.consumer({ groupId: environmentId });
 
 // When a client connects to the websocket,
 // instantiante the kafka client if it does not yet exist
@@ -71,7 +70,7 @@ wsServer.on("connection", async () => {
   const description = await consumer.describeGroup();
   const containsClient = [
     ...description.members.map((member) => member.clientId),
-  ].includes(clientId);
+  ].includes(environmentId);
   console.log(
     "client is already connected and listening for new messages...",
     containsClient

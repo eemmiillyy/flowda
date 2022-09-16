@@ -30,7 +30,7 @@ if [ ! -z "$cFlag" ]; then
   printf 'Running complex query...'
   RESP=$(curl -X POST -v http://localhost:8888/createQuery -H "$TOKEN" -H "Content-Type: application/json"  \
 -d '{
-  "connectionString": "mysql://debezium:dbz@mysql:3306/inventory",
+  "connectionString": "mysql://debezium:dbz@mysqltwo:3306/inventory",
   "sourceSql": "CREATE TABLE customers (id INT, first_name VARCHAR, last_name VARCHAR, email VARCHAR, event_time TIMESTAMP(3) METADATA FROM '\''value.source.timestamp'\'' VIRTUAL, WATERMARK FOR event_time AS event_time - INTERVAL '\''5'\'' SECOND)",
   "sourceSqlTableTwo": "CREATE TABLE orders (order_number BIGINT, purchaser INT, quantity BIGINT, product_id BIGINT, event_time TIMESTAMP(3) METADATA FROM '\''value.source.timestamp'\'' VIRTUAL,  WATERMARK FOR event_time AS event_time - INTERVAL '\''5'\'' SECOND)",
   "querySql": "SELECT customers.email, COUNT(orders.order_number) AS orderCount, SUM(orders.quantity) AS orderQuantity FROM customers INNER JOIN orders ON customers.id = orders.purchaser GROUP BY customers.email ORDER BY orderQuantity DESC LIMIT 1",

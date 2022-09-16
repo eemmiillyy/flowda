@@ -40,7 +40,6 @@ services:
       - zookeeper
     ports:
       - "9093:9093"
-    # kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=PLAIN -X sasl.username=user -X sasl.password=bitnami -L
     environment:
       - BITNAMI_DEBUG=true
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -54,24 +53,15 @@ services:
       - KAFKA_ZOOKEEPER_PROTOCOL=PLAINTEXT
       - KAFKA_CFG_AUTHORIZER_CLASS_NAME=kafka.security.authorizer.AclAuthorizer
       - KAFKA_CFG_SUPER_USERS=User:${KAFKA_USER};User:ANONYMOUS;
-      # - KAFKA_ZOOKEEPER_USER=kafka
-      # - KAFKA_ZOOKEEPER_PASSWORD=kafka_password
-      #Client credentials
+      # Client credentials
       - KAFKA_CLIENT_USERS=${KAFKA_USER}
       - KAFKA_CLIENT_PASSWORDS=${KAFKA_PASSWORD}
-      # - KAFKA_CERTIFICATE_PASSWORD=${KAFKA_PASSWORD}
-      # - KAFKA_TLS_TYPE=JKS
-      # - KAFKA_ZOOKEEPER_TLS_VERIFY_HOSTNAME=false
-      # - KAFKA_CFG_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=''
 
     depends_on:
       - zookeeper
-    # volumes:
-    #   - "./keystore/kafka.server.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
-    #   - "./truststore/kafka.server.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
   mysql:
-    # mysql://mysqluser:mysqlpw@34.141.31.101:3306/inventory
-    # mysql://debezium:dbz@127.0.0.1:3306/inventory
+    # mysql://mysqluser:mysqlpw@127.0.0.1:3306/inventory  (on host machine with permission to update)
+    # mysql://debezium:dbz@mysql:3306/inventory  (within docker)
     image: quay.io/debezium/example-mysql:1.9
     ports:
       - 3306:3306
@@ -80,8 +70,8 @@ services:
       - MYSQL_USER=mysqluser
       - MYSQL_PASSWORD=mysqlpw
   mysqltwo:
-    # mysql://mysqluser:mysqlpw@34.141.31.101:3307/inventory
-    # mysql://debezium:dbz@127.0.0.1:3306/inventory
+    # mysql://mysqluser:mysqlpw@127.0.0.1:3307/inventory (on host machine with permission to update)
+    # mysql://debezium:dbz@mysqltwo:3306/inventory  (within docker)
     image: quay.io/debezium/example-mysql:1.9
     ports:
       - 3307:3306

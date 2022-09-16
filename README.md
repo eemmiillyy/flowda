@@ -119,7 +119,7 @@ java -jar target/benchmarks.jar
 
 ## Running the client demo
 
-This demo is set up to work with the default super user and the simple query job. It is designed to showcase how a user could use the API key and username from the user service's response to connect to the public Kafka cluster to display processed results in their own app.
+This demo is designed to showcase how a user could use the API key and username from the user service's response to connect to the public Kafka cluster to display processed results in their own app.
 
 A connector and corresponding job needs to be running in order for the demo to work. For this you can run `setupFlink.sh` which will create a connector. After that, you can launch the job with `launchJob.sh`. If you run `launchJob.sh` without a `-c` flag, the default simple query will be used. If you want to change the name of the `environmentId` make sure that you also change it inside `server/index.ts`.
 
@@ -131,7 +131,8 @@ A connector and corresponding job needs to be running in order for the demo to w
 cd flow-demo-app
 cd server
 yarn
-yarn ts-node index.ts # Edit clientId, apiKey, and environmentId if necessary, after starting the job.
+yarn ts-node index.ts # Edit apiKey, and environmentId if necessary, after starting the job.
+# You will have to manually create file called environmentId.json with an empty array [] inside.
 ```
 
 #### Running the client (localhost:3000)
@@ -286,10 +287,6 @@ These commands are helpful if you want to look directly at the kafka topic data.
 
 ```bash
 kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[UserInPlaintextFromSettings.json] -X sasl.password=[PasswordDecryptedFromSettings.json] -t simple.inventory.custom_output_table_name
-```
-
-```bash
-kcat -b localhost:9093 -X security.protocol=SASL_SSL -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[UserInPlaintextFromSettings.json] -X sasl.password=[PasswordDecryptedFromSettings.json] -X ssl.ca.location=/private/etc/ssl/flowda/ca-cert -L
 ```
 
 <a name="deployment"/>
