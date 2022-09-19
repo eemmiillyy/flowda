@@ -20,8 +20,8 @@ const wsServer = new WebSocketServer({
 });
 
 // Kafka consumer config
-const environmentId = "complex"; // May need changing - if so, create a new file called [clientId].json with an empty array ([])
-const apiKey = "t/EoWd2HQ8/zz1+pLKvk5QTqzTjoqxv272mutRP4Aaw="; // Needs changing
+const environmentId = "simple"; // May need changing - if so, create a new file called [environmentId].json with an empty array ([])
+const apiKey = "1oHaupLjTiXqYCLs5MLGraQbLiQeLmWg2xFhH7cmung="; // Needs changing
 const topicName = environmentId + ".inventory.custom_output_table_name";
 
 const kafkaClient = new Kafka({
@@ -64,8 +64,8 @@ const consumer = kafkaClient.consumer({ groupId: environmentId });
 
 // When a client connects to the websocket,
 // instantiante the kafka client if it does not yet exist
-// or send the contents from on disk memory ([clientId].json file) if it already exists.
-// Note that [clientId].json file MUST exist, and contain an empty array ([]) to start.
+// or send the contents from on disk memory ([environmentId].json file) if it already exists.
+// Note that [environmentId].json file MUST exist, and contain an empty array ([]) to start.
 wsServer.on("connection", async () => {
   const description = await consumer.describeGroup();
   const containsClient = [
