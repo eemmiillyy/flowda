@@ -286,28 +286,30 @@ java -jar target/flow.core-1.0-SNAPSHOT.jar
 These commands are helpful if you want to look directly at the kafka topic data.
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[username] -X sasl.password=[passwordForUser] -t [username].inventory.custom_output_table_name
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[username] -X sasl.password=[XXXX] -t [username].inventory.custom_output_table_name
 ```
 
 <a name="deployment"/>
 
 ## Deployment
 
-> Make sure the `KAFKA_USER` & `KAFKA_PASSWORD` variables are exported to the console.
+> Make sure the `KAFKA_USER` & `KAFKA_PASSWORD` variables are exported to the console
 
-1. Ssh into the remote gcp instance
+1. Ssh into the remote GCP instance
 2. Pull the latest code changes
+   ```bash
    Git clone git@github.com:eemmiillyy/flowda.git
+   ```
 3. Build the JAR files for (flow-flink-job and flow-core)
-   > Might need to clear the docker cach `docker system prune -a` since it takes around 3GB.
-4. Change docker compose file: kafka advertised listener cannot be localhost (~L49) to IP of machine: `- KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,CLIENT://34.141.31.101:9093`
+   > Might need to clear the docker cach `docker system prune -a` since it takes around 3GB
+4. Change docker compose file: kafka advertised listener cannot be localhost (~L49) to IP of machine: `- KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,CLIENT://[IPRemoteMachine]:9093`
 
-- Can also get IP of machine with `gcloud compute instances list` locally
-- This means that kcat reading from topics will not work from inside the remote machine itself after this change
+   > Can also get IP of machine with `gcloud compute instances list` locally
+   > This means that kcat reading from topics will not work from inside the remote machine itself after this change
 
-5. start the services
+5. Start the services
 
-6. Run setupFlink.sh with STAGE=production
+6. Run setupFlink.sh with `STAGE=production`
 7. Edit Settings.json with new job id (Manual because this part of the script fails in production - WIP)
 8. Re run setupFlink.sh so app is launched with new Settings.json
    > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (`mysql://root:[XXXX]@[IP of remote db]/inventory)
@@ -315,9 +317,9 @@ kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SC
 10. Test output topic is working with:
 
 ```bash
-kcat -b [IP of remote machine]:[port] -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[username] -X sasl.password=[XXXX] -t [username].inventory.custom_output_table_name
+kcat -b [IPRemoteMachine]:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[username] -X sasl.password=[XXXX] -t [username].inventory.custom_output_table_name
 ```
 
-11. Test output topic is working with demo app by changing line 30 in `server/index.ts` to IP of the remote
-    machine instead of localhost.
-12. Connect to the remote database with something like table plus and change a row in `products_on_hand` table to ensure that the output in the demo is updated.
+11. Test output topic is working with demo app by changing ~L30 in `server/index.ts` to IP of the remote
+    machine instead of localhost
+12. Connect to the remote database with something like table plus and change a row in `products_on_hand` table to ensure that the output in the demo is updated
