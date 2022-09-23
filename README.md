@@ -286,7 +286,7 @@ java -jar target/flow.core-1.0-SNAPSHOT.jar
 These commands are helpful if you want to look directly at the kafka topic data.
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[UserInPlaintextFromSettings.json] -X sasl.password=[PasswordDecryptedFromSettings.json] -t simple.inventory.custom_output_table_name
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=simple -X sasl.password=1oHaupLjTiXqYCLs5MLGraQbLiQeLmWg2xFhH7cmung= -t simple.inventory.custom_output_table_name
 ```
 
 <a name="deployment"/>
@@ -295,10 +295,10 @@ kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SC
 
 > Make sure the `KAFKA_USER` & `KAFKA_PASSWORD` variables are exported to the console.
 
-1. ssh into the remote gcp instance
-2. pull the latest code changes
-   git clone git@github.com:eemmiillyy/flowda.git
-3. build the JAR files for (flow-flink-job and flow-core)
+1. Ssh into the remote gcp instance
+2. Pull the latest code changes
+   Git clone git@github.com:eemmiillyy/flowda.git
+3. Build the JAR files for (flow-flink-job and flow-core)
    > Might need to clear the docker cach `docker system prune -a` since it takes around 3GB.
 4. Change docker compose file: kafka advertised listener cannot be localhost (~L49) to IP of machine: `- KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,CLIENT://34.141.31.101:9093`
 
@@ -310,12 +310,12 @@ kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SC
 6. Run setupFlink.sh with STAGE=production
 7. Edit Settings.json with new job id (Manual because this part of the script fails in production - WIP)
 8. Re run setupFlink.sh so app is launched with new Settings.json
-   > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (`mysql://root:[XXXX]@34.141.36.214:3306/inventory)
+   > If you want to test with the remote database, you need to change all instances of the docker mysql database with the remote one (`mysql://root:[XXXX]@[IP of remote db]/inventory)
 9. Run launchJob.sh
 10. Test output topic is working with:
 
 ```bash
-kcat -b 34.141.31.101:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=complex -X sasl.password=+LIYmLdO23OTVUywuX2PHLStu1nCoYSlQ/syChRj8oU= -t complex.inventory.custom_output_table_name
+kcat -b [IP of remote machine]:[port] -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[username] -X sasl.password=[XXXX] -t [username].inventory.custom_output_table_name
 ```
 
 11. Test output topic is working with demo app by changing line 30 in `server/index.ts` to IP of the remote
