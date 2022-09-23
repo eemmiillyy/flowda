@@ -21,7 +21,7 @@ const wsServer = new WebSocketServer({
 
 // Kafka consumer config
 const environmentId = "simple"; // May need changing - if so, create a new file called [environmentId].json with an empty array ([])
-const apiKey = "1oHaupLjTiXqYCLs5MLGraQbLiQeLmWg2xFhH7cmung="; // Needs changing
+const apiKey = "[XXXX]"; // Needs changing
 const topicName = environmentId + ".inventory.custom_output_table_name";
 
 const kafkaClient = new Kafka({
