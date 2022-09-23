@@ -20,8 +20,7 @@ public class MysqlClient {
 
   public void runQuery(String query) throws SQLException {
     try {
-      int result = conn.createStatement().executeUpdate(query);
-      System.out.println(result);
+      conn.createStatement().executeUpdate(query);
     } catch (SQLException e) {
       System.out.println("Could not run update query" + e);
       throw e;

@@ -286,7 +286,7 @@ java -jar target/flow.core-1.0-SNAPSHOT.jar
 These commands are helpful if you want to look directly at the kafka topic data.
 
 ```bash
-kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=simple -X sasl.password=1oHaupLjTiXqYCLs5MLGraQbLiQeLmWg2xFhH7cmung= -t simple.inventory.custom_output_table_name
+kcat -b localhost:9093 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanisms=SCRAM-SHA-256 -X sasl.username=[username] -X sasl.password=[passwordForUser] -t [username].inventory.custom_output_table_name
 ```
 
 <a name="deployment"/>
