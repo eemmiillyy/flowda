@@ -4,6 +4,7 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
+
 import org.apache.commons.crypto.random.CryptoRandom;
 import org.apache.commons.crypto.random.CryptoRandomFactory;
 
@@ -19,8 +20,6 @@ public class ApiKey {
     );
 
     CryptoRandom cryptoRandom = CryptoRandomFactory.getCryptoRandom(properties);
-    // Show the actual class (may be different from the one requested)
-    System.out.println(cryptoRandom.getClass().getCanonicalName());
 
     cryptoRandom.nextBytes(randomBytes);
     System.out.println(Arrays.toString(randomBytes));

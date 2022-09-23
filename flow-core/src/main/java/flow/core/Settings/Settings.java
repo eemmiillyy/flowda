@@ -33,7 +33,7 @@ public class Settings {
   Pattern doubleDollarSignPattern = Pattern.compile("^\\$\\$[A-Za-z0-9]+");
 
   public StageInstance settings;
-  String password = System.getenv("SECRET"); // TODO take from .env
+  String password = System.getenv("SECRET");
   String stage = System.getenv("STAGE");
 
   byte[] salt;
@@ -52,10 +52,10 @@ public class Settings {
     try {
       this.settings = this.load(this.stage, "src/main/resources/Settings.json");
 
-      String saltBase64Encoded = "yGfJMijTbVzzx1Ywb3d2dd=="; // TODO take from .env
+      String saltBase64Encoded = "yGfJMijTbVzzx1Ywb3d2dd==";
       this.salt = Base64.getDecoder().decode(saltBase64Encoded);
 
-      String ivBase64Encoded = "J9eVrf/IcFnsjz9K4AQh/8=="; // TODO take from .env
+      String ivBase64Encoded = "J9eVrf/IcFnsjz9K4AQh/8==";
       this.iv = Base64.getDecoder().decode(ivBase64Encoded);
 
       this.interationCount = 1000;
@@ -85,7 +85,7 @@ public class Settings {
   }
 
   /**
-   * Load file into memory. Automatically called in contsructor.
+   * Load file into memory. Automatically called in constructor.
    * @throws IOException
    */
   public SettingsType.Stage.StageInstance load(String stage, String fileName)

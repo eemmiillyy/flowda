@@ -33,7 +33,8 @@ public class ConnectionStringParser {
     String host = uri.getHost();
     Number port = uri.getPort();
     // TODO check that they can submit a string without a db name
-    String dbName = uri.getPath().substring(1); // Remove / at beginning of db name
+    // Remove / at beginning of db name
+    String dbName = uri.getPath().substring(1);
     String username = userInfo[0];
     String password = userInfo[1];
     return new ConnectionStringParsed(

@@ -359,7 +359,6 @@ public class Bootstrap {
             return;
           }
 
-          // The field to sum needs to be an integer.
           String validJSON = String.format(
             "{\"programArgsList\" : [\"--source\",\"%s\", \"--sourceTwo\",\"%s\",\"--query\", \"%s\",\"--sink\",\"%s\",\"--table\",\"%s\"],\"parallelism\": 1}",
             formattedSourceSql,

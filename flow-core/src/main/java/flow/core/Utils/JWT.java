@@ -47,7 +47,6 @@ public class JWT {
       "." +
       e.encodeToString(payload.toString().getBytes())
     );
-    System.out.println("sig..." + signature);
     String jwtToken =
       e.encodeToString(header.getBytes()) +
       "." +
@@ -81,12 +80,11 @@ public class JWT {
     // Convert string back to date and compare to today
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
     Date jwtExpiryDate = df.parse(jwtPayload.exp);
-    Boolean expired = jwtExpiryDate.compareTo(new Date()) < 0; // convert tomorrows date to SimpleDateFormat
+    // Convert tomorrows date to SimpleDateFormat
+    Boolean expired = jwtExpiryDate.compareTo(new Date()) < 0;
 
     String signature = parts[2];
     String validSignature = hmac(parts[0] + "." + parts[1]);
-    System.out.println(signature);
-    System.out.println(validSignature);
     if (expired) throw new ParseException("JWT is expired", 0);
     if (validSignature.equals(signature)) {
       return jwtPayload;
